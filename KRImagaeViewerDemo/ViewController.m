@@ -1,28 +1,46 @@
-## Screen Shot
+//
+//  ViewController.m
+//  KRImagaeViewerDemo
+//
+//  Created by Kalvar on 12/10/21.
+//  Copyright (c) 2012年 Kuo-Ming Lin. All rights reserved.
+//
 
-<img src="https://dl.dropbox.com/u/83663874/GitHubs/KRImageViewer-1.png" alt="KRDragView" title="KRDragView" style="margin: 20px;" class="center" />
-。
-<img src="https://dl.dropbox.com/u/83663874/GitHubs/KRImageViewer-2.png" alt="KRDragView" title="KRDragView" style="margin: 20px;" class="center" />
+#import "ViewController.h"
+#import "KRImageViewer.h"
 
-## Supports
+@interface ViewController ()
 
-KRImageViewer supports MRC ( Manual Reference Counting ), if you did want it support to ARC, that just use Xode tool to auto convert to ARC. ( Xcode > Edit > Refactor > Convert to Objective-C ARC )
+@end
 
-## How To Get Started
+@implementation ViewController
 
-KRImageViewer which you can browsing photos from the URLs, UIImages. That you can scroll it to change pages, pinching for zooming, and you can close the viewer with touch and drag move it or swipe it to. 
+@synthesize krImageViewer;
 
-``` objective-c
 - (void)viewDidLoad
 {
     krImageViewer = [[KRImageViewer alloc] initWithDragMode:krImageViewerModeOfTopToBottom];
-    [self preloads];    
+    self.krImageViewer.maxConcurrentOperationCount = 1;
+    self.krImageViewer.dragDisapperMode            = krImageViewerDisapperAfterMiddle;
+    [self preloads];
     [super viewDidLoad];
+    // Do any additional setup after loading the view from its nib.
 }
 
 -(void)viewDidAppear:(BOOL)animated{
     [self.krImageViewer resetView:self.view.window];
     [super viewDidAppear:animated];
+}
+
+- (void)didReceiveMemoryWarning
+{
+    [super didReceiveMemoryWarning];
+    // Dispose of any resources that can be recreated.
+}
+
+-(void)dealloc{
+    [krImageViewer release];
+    [super dealloc];
 }
 
 #pragma Method Samples
@@ -38,8 +56,6 @@ KRImageViewer which you can browsing photos from the URLs, UIImages. That you ca
 }
 
 -(IBAction)browsingPreloads:(id)sender{
-    self.krImageViewer.maxConcurrentOperationCount = 1;
-    self.krImageViewer.dragDisapperMode = krImageViewerDisapperAfterMiddle;
     self.krImageViewer.scrollToPage     = 2;
     [self.krImageViewer start];
 }
@@ -69,16 +85,5 @@ KRImageViewer which you can browsing photos from the URLs, UIImages. That you ca
                               nil];
     [self.krImageViewer browseImages:_directWatchs];
 }
-```
 
-## Version
-
-KRImageViewer now is V0.6 beta.
-
-## License
-
-KRImageViewer is available under the MIT license ( or Whatever you wanna do ). See the LICENSE file for more info.
-
-## Others
-
-KRImageViewer to offer a browser of images, It'll be liking the iOS Facebook Image Viewer in the future one day.
+@end
