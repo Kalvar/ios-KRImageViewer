@@ -1,8 +1,8 @@
 ## Screen Shot
 
-<img src="https://dl.dropbox.com/u/83663874/GitHubs/KRImageViewer-1.png" alt="KRDragView" title="KRDragView" style="margin: 20px;" class="center" />
+<img src="https://dl.dropbox.com/u/83663874/GitHubs/KRImageViewer-1.png" alt="KRImageViewer" title="KRImageViewer" style="margin: 20px;" class="center" />
 。
-<img src="https://dl.dropbox.com/u/83663874/GitHubs/KRImageViewer-2.png" alt="KRDragView" title="KRDragView" style="margin: 20px;" class="center" />
+<img src="https://dl.dropbox.com/u/83663874/GitHubs/KRImageViewer-2.png" alt="KRImageViewer" title="KRImageViewer" style="margin: 20px;" class="center" />
 
 ## Supports
 
