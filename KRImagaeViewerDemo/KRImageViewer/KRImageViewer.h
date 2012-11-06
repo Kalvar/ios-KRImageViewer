@@ -1,10 +1,20 @@
 //
 //  KRViewDrags.h
-//  Kuo-Ming Lin
+//  MC
 //
-//  Created by Kuo-Ming Lin ( Kalvar, ilovekalvar@gmail.com ) on 12/10/2.
-//  Copyright (c) 2012年 Kuo-Ming Lin All rights reserved.
+//  Created by Kalvar on 12/10/2.
+//  Copyright (c) 2012年 Flashaim Inc. All rights reserved.
 //
+
+/*
+ * 模仿 Facebook App 的看圖方式 ( 寫一支 KRImagePreviewer Class )
+ *  - 一個全透明 UIView (A)
+ *  - 一個半透明黑色背景 UIView (B)
+ *  - 修改 KRDragView 上下拖拉 ImageView 移除圖片
+ *  - 設定 (B) 有 KRDragView 的上下拖拉手勢 view
+ *  - 寫入 (B) ScrollView  進行左右看大圖
+ *  - 可設定預設 ScrollView 的顯示圖
+ */
 
 #import <UIKit/UIKit.h>
 
@@ -39,6 +49,8 @@ typedef enum _krImageViewerDisapper{
     krImageViewerModes dragMode;
     //圖片自動消失的距離
     krImageViewerDisapper dragDisapperMode;
+    //是否允許圖片在下載處理時進行快取
+    BOOL allowOperationCaching;
     //距離螢幕邊緣多遠就定位
     CGFloat sideInstance;
     //最後定位的動畫時間
@@ -59,6 +71,7 @@ typedef enum _krImageViewerDisapper{
 @property (nonatomic, retain) UIView *view;
 @property (nonatomic, assign) krImageViewerModes dragMode;
 @property (nonatomic, assign) krImageViewerDisapper dragDisapperMode;
+@property (nonatomic, assign) BOOL allowOperationCaching;
 @property (nonatomic, assign) CGFloat sideInstance;
 @property (nonatomic, assign) CGFloat durations;
 @property (nonatomic, assign) NSInteger maxConcurrentOperationCount;

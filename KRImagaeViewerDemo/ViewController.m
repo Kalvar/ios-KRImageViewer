@@ -22,6 +22,7 @@
     krImageViewer = [[KRImageViewer alloc] initWithDragMode:krImageViewerModeOfTopToBottom];
     self.krImageViewer.maxConcurrentOperationCount = 1;
     self.krImageViewer.dragDisapperMode            = krImageViewerDisapperAfterMiddle;
+    self.krImageViewer.allowOperationCaching       = YES;
     [self preloads];
     [super viewDidLoad];
     // Do any additional setup after loading the view from its nib.

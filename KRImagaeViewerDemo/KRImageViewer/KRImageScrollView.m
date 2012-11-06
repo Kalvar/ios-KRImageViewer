@@ -1,9 +1,9 @@
 //
 //  KRImageScrollView.m
-//  Kuo-Ming Lin
+//  MC
 //
-//  Created by Kuo-Ming Lin ( Kalvar, ilovekalvar@gmail.com ) on 12/10/2.
-//  Copyright (c) 2012年 Kuo-Ming Lin All rights reserved.
+//  Created by Kalvar on 12/10/18.
+//  Copyright (c) 2012年 Flashaim Inc. All rights reserved.
 //
 
 #import "KRImageScrollView.h"
@@ -45,6 +45,10 @@
 }
 
 -(void)_addGestures{
+    /*
+     * 點 1 下隱藏狀態列的手勢，暫時取消，因為會跟點 2 下放大的手勢衝突。
+     * 會變成在點 2 下放大時，也會啟動點 1 一下的手勢 XD。
+     */
     //UITapGestureRecognizer *singleTap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(handleSingleTap:)];
     UITapGestureRecognizer *doubleTap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(handleDoubleTap:)];
     //UITapGestureRecognizer *twoFingerTap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(handleTwoFingerTap:)];

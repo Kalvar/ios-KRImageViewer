@@ -1,9 +1,9 @@
 //
 //  KRViewDrags.m
-//  Kuo-Ming Lin
 //
-//  Created by Kuo-Ming Lin ( Kalvar, ilovekalvar@gmail.com ) on 12/10/2.
-//  Copyright (c) 2012年 Kuo-Ming Lin All rights reserved.
+//
+//  Created by Kalvar on 12/10/2.
+//  Copyright (c) 2012年 Flashaim Inc. All rights reserved.
 //
 
 #import <QuartzCore/QuartzCore.h>
@@ -31,6 +31,7 @@ static CGFloat krLoadingViewTag = 1799;
 @property (nonatomic, assign) CGPoint _matchPoints;
 @property (nonatomic, retain) UIPanGestureRecognizer *_panGestureRecognizer;
 @property (nonatomic, assign) UIView *_gestureView;
+//NSOperation 排程處理器
 @property (nonatomic, retain) NSOperationQueue *_operationQueues;
 @property (nonatomic, retain) UIView *_backgroundView;
 @property (nonatomic, retain) UIView *_dragView;
@@ -76,6 +77,8 @@ static CGFloat krLoadingViewTag = 1799;
 -(BOOL)_isInt:(NSString*)_string;
 -(void)_refreshCaches;
 -(void)_disapperAsSuckEffect;
+//
+-(NSInteger)_findOperationCacheMode;
 
 @end
 
@@ -83,6 +86,7 @@ static CGFloat krLoadingViewTag = 1799;
 
 -(void)_initWithVars{
     if( self.maxConcurrentOperationCount <= 0 ){
+        //一次只處理 n 個 Operation
         self.maxConcurrentOperationCount = NSOperationQueueDefaultMaxConcurrentOperationCount;
     }
     self.sideInstance = 0.0f;
@@ -91,13 +95,14 @@ static CGFloat krLoadingViewTag = 1799;
     _caches           = [[NSMutableDictionary alloc] initWithCapacity:0];
     _sortedKeys       = [[NSMutableArray alloc] initWithCapacity:0];
     _imageInfos       = [[NSMutableDictionary alloc] initWithCapacity:0];
-    self.dragDisapperMode   = krImageViewerDisapperAfterMiddle;
-    self.statusBarHidden    = YES;
-    self.scrollToPage       = 0;
-    self.maximumZoomScale   = 2.0f;
-    self.minimumZoomScale   = 1.0f;
-    self.zoomScale          = 2.0f;
-    self.clipsToBounds      = YES;
+    self.dragDisapperMode      = krImageViewerDisapperAfterMiddle;
+    self.allowOperationCaching = YES;
+    self.statusBarHidden       = YES;
+    self.scrollToPage          = 0;
+    self.maximumZoomScale      = 2.0f;
+    self.minimumZoomScale      = 1.0f;
+    self.zoomScale             = 2.0f;
+    self.clipsToBounds         = YES;
 }
 
 -(void)_resetViewVars{
@@ -136,6 +141,11 @@ static CGFloat krLoadingViewTag = 1799;
 }
 
 -(void)_resetMatchPoints{
+    /*
+     * 因為不允許左右移動，所以 X 軸幾乎不會動
+     * 如果現在的 X 軸與原始的 X 軸不相等，代表畫面上的 View 有變動
+     */
+    //修正誤差
     CGFloat _xOffset = 0.0f;
     if( self._gestureView.center.x != self._orignalPoints.x ){
         _xOffset = self._gestureView.center.x - self._orignalPoints.x;
@@ -194,6 +204,10 @@ static CGFloat krLoadingViewTag = 1799;
     return _disapperInstance;
 }
 
+#warning KRImageViewer 拖拉動作，待修 !
+/*
+ * 拖拉的動作，待修 !
+ */
 -(void)_handleDrag:(UIPanGestureRecognizer *)_panGesture
 {
     //目前手勢 View 的中心位置
@@ -261,6 +275,11 @@ static CGFloat krLoadingViewTag = 1799;
                     center = CGPointMake(self._matchPoints.x, center.y + translation.y);
                     _panGesture.view.center = center;
                     [_panGesture setTranslation:CGPointZero inView:_panGesture.view];
+                    
+#warning 關於狀態列的部份，還要再修改，依然有 Bugs
+                    /*
+                     * 關於狀態列的部份，還要再修改，依然有 Bugs
+                     */
                     //代表沒移動
                     if( center.y == self._matchPoints.y ){
                         [self _appearStatus:NO];
@@ -346,17 +365,32 @@ static CGFloat krLoadingViewTag = 1799;
                 }
                 continue;
             }
+            /*
+             * @Operation 下載圖片不一定會按照順序執行 ?
+             *   要設定 NSOperationQueue 的 maxConcurrentOperationCount 屬性，
+             *   maxConcurrentOperationCount = 1 為完全照著佇列的順序來，一次只處理一筆。
+             *   maxConcurrentOperationCount = N 為開啟多執行緒的動作，一次同時處理 N 筆，也就是這裡會讓看誰跑的比較快完成，不會完全照著佇列的順序進行。
+             */
             NSString *_url = [_urlInfos objectForKey:_imageKey];
-            KRImageOperation *_operation = [[KRImageOperation alloc] initWithImageURL:_url];
+            //設定 NSOperation
+            __block KRImageOperation *_operation = [[KRImageOperation alloc] initWithImageURL:_url];
+            _operation.cacheMode = [self _findOperationCacheMode];
+            //使用 ^Block (設定完成時候的動作)
             [_operation setCompletionBlock:^{
+                //NSLog(@"imageUrl : %@", _url);
+                //NSLog(@"imageDone : %@\n\n", _operation.doneImage);
+                //[self.caches addObject:_operation.doneImage];
+                //寫入快取
                 [self._caches setObject:_operation.doneImage forKey:_imageKey];
                 _operation.doneImage = nil;
                 if( _operationQueues.operationCount == 0 ){
+                    //全處理完了
                     [self _resortKeys];
                     [self start];
                     [self _stopLoading];
                 }
             }];
+            //寫入排程
             [_operationQueues addOperation:_operation];
             [_operation release];
         }
@@ -366,6 +400,7 @@ static CGFloat krLoadingViewTag = 1799;
 }
 
 -(void)_resetBackgroundViewAlpha{
+    //計算比例
     CGFloat _offsetAlpha  = -0.2f;
     CGFloat _screenHeight = self._gestureView.frame.size.height;
     CGFloat _dragHeight   = self._dragView.frame.origin.y;
@@ -394,6 +429,7 @@ static CGFloat krLoadingViewTag = 1799;
         _scrollView = [[UIScrollView alloc] init];
     }
     [self._scrollView setFrame:_frame];
+    //設定是否啟動分頁機制 : 如不啟動，則會一直滑動不停 ; 如啟動，會一格一格的分頁顯示
     [self._scrollView setPagingEnabled:YES];
     self._scrollView.showsHorizontalScrollIndicator = NO;
     self._scrollView.showsVerticalScrollIndicator   = NO;
@@ -435,6 +471,9 @@ static CGFloat krLoadingViewTag = 1799;
     [self._scrollView setContentSize:CGSizeMake(_innerFrame.origin.x, _innerFrame.size.height)];
 }
 
+/*
+ * Test functions ( 待修正 )
+ */
 -(void)_browseImages{
     if( [self._caches count] > 0 ){
         [self _setupImagesInScrollView];
@@ -442,7 +481,7 @@ static CGFloat krLoadingViewTag = 1799;
         [self._dragView addSubview:self._scrollView];
         //Button
         UIButton *_button = [UIButton buttonWithType:UIButtonTypeRoundedRect];
-        [_button setTitle:@"Done" forState:UIControlStateNormal];
+        [_button setTitle:@"完成" forState:UIControlStateNormal];
         [_button addTarget:self action:@selector(_removeBrowser:) forControlEvents:UIControlEventTouchUpInside];
         [_button setFrame:CGRectMake(0.0, 40.0, 100.0f, 30.0f)];
         [self._dragView addSubview:_button];
@@ -470,6 +509,7 @@ static CGFloat krLoadingViewTag = 1799;
     }
     [self._backgroundView removeFromSuperview];
     [self._dragView removeFromSuperview];
+    //[self.view removeFromSuperview];
 }
 
 //
@@ -506,6 +546,7 @@ static CGFloat krLoadingViewTag = 1799;
     [[_targetView viewWithTag:krLoadingViewTag] removeFromSuperview];
 }
 
+//隱藏或顯示狀態列
 -(void)_appearStatus:(BOOL)_isAppear{
     //if( !self.statusBarHidden ) return;
     UIWindow *_mainWindow = [[UIApplication sharedApplication] keyWindow];
@@ -541,10 +582,27 @@ static CGFloat krLoadingViewTag = 1799;
 
 -(void)_scrollToPage:(NSInteger)_toPage{
     NSInteger _scrollToIndex = _toPage > 0 ? _toPage - 1 : 0;
+    //取出 subviews
     CGRect _scrollToFrame  = [[self._scrollView.subviews objectAtIndex:_scrollToIndex] frame];
     [self._scrollView scrollRectToVisible:_scrollToFrame animated:NO];
+    /*
+     //Another method.
+     CGRect _scrollToFrame = self._scrollView.frame;
+     _scrollToFrame.origin.x = _scrollToFrame.size.width * _scrollPage;
+     _scrollToFrame.origin.y = 0.0f;
+     */
 }
 
+/*
+ *
+ * @排序字典陣列，可設定是 ASC 或 DESC 排序
+ *   _formatedDatas 的資料必須要將用作排序的值當成資料陣列的 Key 才行 : _formatedDatas[sortKey] = datas，
+ *   也就是會預設以字典陣列裡的鍵值作為排序的準則。
+ *   回傳的字典陣列裡，會有 2 個陣列值 :
+ *   _temps["keys"]   = 所有排序過後的原始 Key 陣列集合
+ *   _temps["values"] = 所有排序過後的原始 資料 陣列集合
+ *
+ */
 -(NSDictionary *)_sortDictionary:(NSDictionary *)_formatedDatas ascending:(BOOL)_isAsc{
     NSString *_keyName   = @"keys";
     NSString *_valueName = @"values";
@@ -552,10 +610,15 @@ static CGFloat krLoadingViewTag = 1799;
     if( [_formatedDatas count] > 0 ){
         NSMutableArray *_keys   = [[NSMutableArray alloc] initWithCapacity:0];
         NSMutableArray *_values = [[NSMutableArray alloc] initWithCapacity:0];
+        //針對 Key 先做 ASC 排序
         NSMutableArray *_tempSorts = [NSMutableArray arrayWithCapacity:0];
+        //要排序比對的儲存 Key
         NSString *_sortKey = @"id";
         for( NSString *_key in _formatedDatas ){
+            //字串轉 Integer，非數字會回傳 0
+            //NSInteger _keyOfInt = [_key integerValue];
             NSMutableDictionary *_sorts = [[NSMutableDictionary alloc] initWithCapacity:0];
+            //如果 _key 是數字型態，就轉化成 NSNumber 物件儲存
             if( [self _isInt:_key] ){
                 [_sorts setObject:[NSNumber numberWithInteger:[_key integerValue]] forKey:_sortKey];
             }else{
@@ -564,12 +627,17 @@ static CGFloat krLoadingViewTag = 1799;
             [_tempSorts addObject:_sorts];
             [_sorts release];
         }
+        //設定排序規則，要以什麼「Key」為排序依據( 這裡設定取出陣列裡 Key 命名為 "id" 的值做排序 ), ascending ( ASC )
         NSSortDescriptor *_sortDescriptor = [NSSortDescriptor sortDescriptorWithKey:_sortKey ascending:_isAsc];
+        //依排序排則針對 _tempSorts 做排序的動作
         NSArray *_sorteds = [_tempSorts sortedArrayUsingDescriptors:[NSArray arrayWithObject:_sortDescriptor]];
+        //依序取出內容值，放入 Keys 主鍵集合裡
         for( NSDictionary *_dicts in _sorteds ){
             [_keys addObject:[NSString stringWithFormat:@"%@", [_dicts objectForKey:_sortKey]]];
         }
+        //依照排序好的 Keys 主鍵集合再依序取出所屬資料即完成整個排序動作
         for( NSString *_key in _keys ){
+            //製作 UIPickerView 的資料
             [_values addObject:[_formatedDatas objectForKey:_key]];
         }
         [_temps setObject:_keys forKey:_keyName];
@@ -578,6 +646,7 @@ static CGFloat krLoadingViewTag = 1799;
     return _temps;
 }
 
+//判斷是否為純整數
 -(BOOL)_isInt:(NSString*)_string{
     int _number;
     NSScanner *_scanner = [NSScanner scannerWithString:_string];
@@ -601,6 +670,10 @@ static CGFloat krLoadingViewTag = 1799;
     //[self dismissViewControllerAnimated:YES completion:nil];
 }
 
+-(NSInteger)_findOperationCacheMode{
+    return self.allowOperationCaching ? KRImageOperationAllowCache : KRImageOperationIgnoreCache;
+}
+
 @end
 
 
@@ -621,6 +694,7 @@ static CGFloat krLoadingViewTag = 1799;
 @synthesize view;
 @synthesize dragMode;
 @synthesize dragDisapperMode;
+@synthesize allowOperationCaching;
 @synthesize sideInstance;
 @synthesize durations;
 @synthesize maxConcurrentOperationCount;
@@ -670,10 +744,14 @@ static CGFloat krLoadingViewTag = 1799;
 -(void)dealloc{
     [view release];
     
+    self._caches = nil;
     [_caches release];
+    
     [_sortedKeys release];
     [_imageInfos release];
     [_panGestureRecognizer release];
+    
+    self._operationQueues = nil;
     [_operationQueues release];
     [_backgroundView release];
     [_dragView release];
@@ -698,6 +776,7 @@ static CGFloat krLoadingViewTag = 1799;
     [self _removeViewDragGesture];
     [self _disapperAsSuckEffect];
     [self _removeAllViews];
+    //回原點
     [self _moveView:self._gestureView toX:0.0f toY:0.0f];
 }
 
@@ -736,7 +815,9 @@ static CGFloat krLoadingViewTag = 1799;
     //預載圖片
     for( NSString *_imageKey in _preloadImages ){
         NSString *_url = [_preloadImages objectForKey:_imageKey];
-        KRImageOperation *_operation = [[KRImageOperation alloc] initWithImageURL:_url];
+        //使用 __block 定義子進行宣告該 ^Block 不被重複 retain 
+        __block KRImageOperation *_operation = [[KRImageOperation alloc] initWithImageURL:_url];
+        _operation.cacheMode = [self _findOperationCacheMode];
         [_operation setCompletionBlock:^{
             [self._caches setObject:_operation.doneImage forKey:_imageKey];
             _operation.doneImage = nil;
@@ -779,6 +860,8 @@ static CGFloat krLoadingViewTag = 1799;
 -(UIView *)viewForZoomingInScrollView:(UIScrollView *)scrollView{
     
 //    if( [scrollView.subviews count] > 0 ){
+//        //先暫時不支援縮放，因為還沒有完全搞定縮放的功能 ...
+//        //要如何在多個 subview 裡進行完美縮放 .... ?
 //        //return [scrollView.subviews objectAtIndex:0];
 //        //return [scrollView.subviews objectAtIndex:[self _currentIndex]];
 //    }
@@ -786,14 +869,44 @@ static CGFloat krLoadingViewTag = 1799;
     return nil;
 }
 
+//縮放結束
 -(void)scrollViewDidEndZooming:(UIScrollView *)scrollView withView:(UIView *)_subview atScale:(float)scale{
     
 //    if( scale <= 1.0 ){
+//        //加回手勢
 //        [self _addViewDragGesture];        
 //    }else{
+//        //移除手勢
 //        [self _removeViewDragGesture];
 //    }
     
 }
+
+
+//UITapGestureRecognizer *singleTap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(handleSingleTap:)];
+//[self._dragView addGestureRecognizer:singleTap];
+//[singleTap release];
+//
+//- (void)handleSingleTap:(UIGestureRecognizer *)gestureRecognizer{
+//    UIWindow *_mainWindow = [[UIApplication sharedApplication] keyWindow];
+//    BOOL _barHidden = [UIApplication sharedApplication].statusBarHidden;
+//    if( _barHidden ){
+//        if( _mainWindow ){
+//            UIView *_statusView =[[UIView alloc] initWithFrame:[[UIApplication sharedApplication] statusBarFrame]];
+//            [_statusView setBackgroundColor:[UIColor clearColor]];
+//            [_statusView setBackgroundColor:[UIColor blackColor]];
+//            [_statusView setTag:KR_STATUS_BAR_VIEW_TAG];
+//            [_mainWindow addSubview:_statusView];
+//            [_mainWindow sendSubviewToBack:_statusView];
+//            [_statusView release];
+//        }
+//    }else{
+//        if( [_mainWindow viewWithTag:KR_STATUS_BAR_VIEW_TAG] ){
+//            [[_mainWindow viewWithTag:KR_STATUS_BAR_VIEW_TAG] removeFromSuperview];
+//        }
+//    }
+//    [[UIApplication sharedApplication] setStatusBarHidden:!_barHidden withAnimation:UIStatusBarAnimationSlide];
+//}
+
 
 @end

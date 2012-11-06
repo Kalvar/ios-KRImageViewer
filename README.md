@@ -16,6 +16,7 @@ KRImageViewer which you can browsing photos from the URLs, UIImages. That you ca
 - (void)viewDidLoad
 {
     krImageViewer = [[KRImageViewer alloc] initWithDragMode:krImageViewerModeOfTopToBottom];
+    krImageViewer.allowOperationCaching = YES;
     [self preloads];    
     [super viewDidLoad];
 }

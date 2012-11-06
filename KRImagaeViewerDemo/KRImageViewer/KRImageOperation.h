@@ -1,16 +1,29 @@
 //
 //  KRImageOperation.h
-//  Kuo-Ming Lin
+//  MC
 //
-//  Created by Kuo-Ming Lin ( Kalvar, ilovekalvar@gmail.com ) on 12/10/2.
-//  Copyright (c) 2012年 Kuo-Ming Lin All rights reserved.
+//  Created by Kalvar on 12/10/15.
+//  Copyright (c) 2012年 Flashaim Inc. All rights reserved.
 //
 
 #import <Foundation/Foundation.h>
 
-@interface KRImageOperation : NSOperation
+/*
+ * 連線快取模式
+ */
+typedef enum{
+    KRImageOperationAllowCache = 0,
+    KRImageOperationIgnoreCache
+}KRImageOperationConnectionCacheModes;
+
+@interface KRImageOperation : NSOperation{
+    CGFloat _progress;
+    KRImageOperationConnectionCacheModes _cacheMode;
+}
 
 @property (nonatomic, retain) UIImage *doneImage;
+@property (nonatomic, assign) CGFloat progress;
+@property (nonatomic, assign) KRImageOperationConnectionCacheModes cacheMode;
 
 -(id)initWithImageURL:(NSString *)_imageURL;
 

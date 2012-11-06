@@ -1,9 +1,9 @@
 //
 //  KRImageScrollView.h
-//  Kuo-Ming Lin
+//  MC
 //
-//  Created by Kuo-Ming Lin ( Kalvar, ilovekalvar@gmail.com ) on 12/10/2.
-//  Copyright (c) 2012年 Kuo-Ming Lin All rights reserved.
+//  Created by Kalvar on 12/10/18.
+//  Copyright (c) 2012年 Flashaim Inc. All rights reserved.
 //
 
 #import <UIKit/UIKit.h>
