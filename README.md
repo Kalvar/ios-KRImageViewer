@@ -16,8 +16,11 @@ KRImageViewer which you can browsing photos from the URLs, UIImages. That you ca
 - (void)viewDidLoad
 {
     krImageViewer = [[KRImageViewer alloc] initWithDragMode:krImageViewerModeOfTopToBottom];
-    krImageViewer.allowOperationCaching = YES;
-    [self preloads];    
+    self.krImageViewer.maxConcurrentOperationCount = 1;
+    self.krImageViewer.dragDisapperMode            = krImageViewerDisapperAfterMiddle;
+    self.krImageViewer.allowOperationCaching       = NO;
+    self.krImageViewer.timeout                     = 30.0f;
+    [self preloads];
     [super viewDidLoad];
 }
 
@@ -39,9 +42,7 @@ KRImageViewer which you can browsing photos from the URLs, UIImages. That you ca
 }
 
 -(IBAction)browsingPreloads:(id)sender{
-    self.krImageViewer.maxConcurrentOperationCount = 1;
-    self.krImageViewer.dragDisapperMode = krImageViewerDisapperAfterMiddle;
-    self.krImageViewer.scrollToPage     = 2;
+    self.krImageViewer.scrollToPage = 2;
     [self.krImageViewer start];
 }
 
@@ -56,17 +57,15 @@ KRImageViewer which you can browsing photos from the URLs, UIImages. That you ca
     [self.krImageViewer browseImageURLs:_downloads];
     
     //Or you can browse an image as you wanna watch.
-    [self.krImageViewer browseAnImageURL:@"http://farm9.staticflickr.com/8449/7943919662_67f7345f8b_s.jpg"];
+    //[self.krImageViewer browseAnImageURL:@"http://farm9.staticflickr.com/8449/7943919662_67f7345f8b_s.jpg"];
 }
 
 -(IBAction)browsingImages:(id)sender{
     //Or you can browse UIImages.
     NSArray *_directWatchs = [NSArray arrayWithObjects:
-                              [UIImage imageNamed:@"image1.jpg"],
-                              [UIImage imageNamed:@"image2.jpg"],
-                              [UIImage imageNamed:@"image3.jpg"],
-                              [UIImage imageNamed:@"image4.jpg"],
-                              [UIImage imageNamed:@"image5.jpg"],
+                              [UIImage imageNamed:@"image1.png"],
+                              [UIImage imageNamed:@"image2.png"],
+                              [UIImage imageNamed:@"image3.png"],
                               nil];
     [self.krImageViewer browseImages:_directWatchs];
 }

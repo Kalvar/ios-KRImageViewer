@@ -1,9 +1,10 @@
 //
 //  KRImageScrollView.m
-//  MC
 //
-//  Created by Kalvar on 12/10/18.
-//  Copyright (c) 2012年 Flashaim Inc. All rights reserved.
+//  ilovekalvar@gmail.com
+//
+//  Created by Kuo-Ming Lin on 2012/11/07.
+//  Copyright (c) 2012年 Kuo-Ming Lin. All rights reserved.
 //
 
 #import "KRImageScrollView.h"
@@ -111,6 +112,8 @@
 */
 
 -(void)dealloc{
+    //NSLog(@"KRImageScrollView Dealloc");
+    self._imageView.image = nil;
     [_imageView release];
     [super dealloc];
 }
@@ -121,6 +124,7 @@
         [_imageView removeFromSuperview];
         self._imageView.image = nil;
         self._imageView       = nil;
+        [_imageView release];
     }
     _imageView = [[UIImageView alloc] initWithImage:_subImage];
     self._imageView.contentMode = UIViewContentModeScaleToFill;

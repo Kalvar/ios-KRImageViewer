@@ -1,9 +1,10 @@
 //
-//  KRViewDrags.m
+//  KRImageViewer.m
 //
+//  ilovekalvar@gmail.com
 //
-//  Created by Kalvar on 12/10/2.
-//  Copyright (c) 2012年 Flashaim Inc. All rights reserved.
+//  Created by Kuo-Ming Lin on 2012/11/07.
+//  Copyright (c) 2012年 Kuo-Ming Lin. All rights reserved.
 //
 
 #import <QuartzCore/QuartzCore.h>
@@ -13,7 +14,9 @@
 
 
 static CGFloat _backgroundViewBlackColor = 0.0f;
-static CGFloat krLoadingViewTag = 1799;
+static NSInteger krLoadingViewTag   = 1799;
+static NSInteger krLoadingButtonTag = 1800;
+static NSInteger krBrowseButtonTag  = 1801;
 
 @interface KRImageViewer (){
     UIPanGestureRecognizer *_panGestureRecognizer;
@@ -31,7 +34,6 @@ static CGFloat krLoadingViewTag = 1799;
 @property (nonatomic, assign) CGPoint _matchPoints;
 @property (nonatomic, retain) UIPanGestureRecognizer *_panGestureRecognizer;
 @property (nonatomic, assign) UIView *_gestureView;
-//NSOperation 排程處理器
 @property (nonatomic, retain) NSOperationQueue *_operationQueues;
 @property (nonatomic, retain) UIView *_backgroundView;
 @property (nonatomic, retain) UIView *_dragView;
@@ -39,6 +41,7 @@ static CGFloat krLoadingViewTag = 1799;
 @property (nonatomic, retain) NSMutableDictionary *_caches;
 @property (nonatomic, retain) NSMutableArray *_sortedKeys;
 @property (nonatomic, retain) NSMutableDictionary *_imageInfos;
+@property (nonatomic, assign) BOOL _isCancelled;
 
 @end
 
@@ -53,7 +56,12 @@ static CGFloat krLoadingViewTag = 1799;
 -(void)_removeViewDragGesture;
 -(void)_moveView:(UIView *)_targetView toX:(CGFloat)_toX toY:(CGFloat)_toY;
 -(CGFloat)_dragDisapperInstance;
+-(void)_hideDoneButton;
+-(void)_displayDoneButton;
 -(void)_handleDrag:(UIPanGestureRecognizer*)_panGesture;
+//
+-(void)_resortKeys;
+-(void)_cancelAllOperations;
 -(void)_downloadImageURLs:(NSDictionary *)_urls;
 -(void)_resetBackgroundViewAlpha;
 //
@@ -65,6 +73,7 @@ static CGFloat krLoadingViewTag = 1799;
 -(void)_removeBrowser:(id)sender;
 -(void)_removeAllViews;
 //
+-(CGFloat)_statusBarHeight;
 -(void)_startLoading;
 -(void)_stopLoading;
 -(void)_appearStatus:(BOOL)_isAppear;
@@ -79,6 +88,9 @@ static CGFloat krLoadingViewTag = 1799;
 -(void)_disapperAsSuckEffect;
 //
 -(NSInteger)_findOperationCacheMode;
+-(void)_cancelAndClose:(id)sender;
+//
+-(UIImage *)_imageNameNoCache:(NSString *)_imageName;
 
 @end
 
@@ -103,6 +115,8 @@ static CGFloat krLoadingViewTag = 1799;
     self.minimumZoomScale      = 1.0f;
     self.zoomScale             = 2.0f;
     self.clipsToBounds         = YES;
+    self._isCancelled          = NO;
+    self.timeout               = 60.0f;
 }
 
 -(void)_resetViewVars{
@@ -204,7 +218,14 @@ static CGFloat krLoadingViewTag = 1799;
     return _disapperInstance;
 }
 
-#warning KRImageViewer 拖拉動作，待修 !
+-(void)_hideDoneButton{
+    [(UIButton *)[self._dragView viewWithTag:krBrowseButtonTag] setHidden:YES];
+}
+
+-(void)_displayDoneButton{
+    [(UIButton *)[self._dragView viewWithTag:krBrowseButtonTag] setHidden:NO];
+}
+
 /*
  * 拖拉的動作，待修 !
  */
@@ -238,6 +259,7 @@ static CGFloat krLoadingViewTag = 1799;
                     center = CGPointMake(self._matchPoints.x, center.y + translation.y);
                     _panGesture.view.center = center;
                     [_panGesture setTranslation:CGPointZero inView:_panGesture.view];
+                    [self _hideDoneButton];
                     //代表沒移動
                     if( center.y == self._matchPoints.y ){
                         [self _appearStatus:NO];
@@ -252,6 +274,7 @@ static CGFloat krLoadingViewTag = 1799;
                 CGFloat _screenHeight = self._gestureView.frame.size.height;
                 CGFloat _moveDistance = _screenHeight - self.sideInstance;
                 [self _appearStatus:NO];
+                [self _displayDoneButton];
                 //檢查 X 是否已過中線
                 if( viewCenter.y > [self _dragDisapperInstance] ){
                     //打開
@@ -275,11 +298,7 @@ static CGFloat krLoadingViewTag = 1799;
                     center = CGPointMake(self._matchPoints.x, center.y + translation.y);
                     _panGesture.view.center = center;
                     [_panGesture setTranslation:CGPointZero inView:_panGesture.view];
-                    
-#warning 關於狀態列的部份，還要再修改，依然有 Bugs
-                    /*
-                     * 關於狀態列的部份，還要再修改，依然有 Bugs
-                     */
+                    [self _hideDoneButton];
                     //代表沒移動
                     if( center.y == self._matchPoints.y ){
                         [self _appearStatus:NO];
@@ -295,6 +314,7 @@ static CGFloat krLoadingViewTag = 1799;
                 CGFloat _screenHeight = self._gestureView.frame.size.height;
                 CGFloat _moveDistance = -(_screenHeight - self.sideInstance);
                 [self _appearStatus:NO];
+                [self _displayDoneButton];
                 //Open
                 if( viewCenter.y < -( [self _dragDisapperInstance] ) ){
                     [self _moveView:self._gestureView toX:0.0f toY:_moveDistance];
@@ -311,6 +331,7 @@ static CGFloat krLoadingViewTag = 1799;
                     center = CGPointMake(self._matchPoints.x, center.y + translation.y);
                     _panGesture.view.center = center;
                     [_panGesture setTranslation:CGPointZero inView:_panGesture.view];
+                    [self _hideDoneButton];
                     if( center.y == self._matchPoints.y ){
                         [self _appearStatus:NO];
                     }else{
@@ -323,6 +344,7 @@ static CGFloat krLoadingViewTag = 1799;
                 CGFloat _screenHeight = self._gestureView.frame.size.height;
                 CGFloat _moveDistance = -(_screenHeight - self.sideInstance);
                 [self _appearStatus:NO];
+                [self _displayDoneButton];
                 if( viewCenter.y < -( [self _dragDisapperInstance] ) ){
                     [self _moveView:self._gestureView toX:0.0f toY:_moveDistance];
                 }else{
@@ -344,10 +366,18 @@ static CGFloat krLoadingViewTag = 1799;
     }
 }
 
+-(void)_cancelAllOperations{
+    if( self._operationQueues.operationCount > 0 ){
+        //self._isCancelled = YES;
+        [self._operationQueues cancelAllOperations];
+    }
+}
+
 /*
  * 下載來自 URL 的圖片
  */
 -(void)_downloadImageURLs:(NSDictionary *)_urlInfos{
+    [self _cancelAllOperations];
     [self _startLoading];
     //[self._caches removeAllObjects];
     NSInteger _total = [_urlInfos count];
@@ -365,29 +395,27 @@ static CGFloat krLoadingViewTag = 1799;
                 }
                 continue;
             }
-            /*
-             * @Operation 下載圖片不一定會按照順序執行 ?
-             *   要設定 NSOperationQueue 的 maxConcurrentOperationCount 屬性，
-             *   maxConcurrentOperationCount = 1 為完全照著佇列的順序來，一次只處理一筆。
-             *   maxConcurrentOperationCount = N 為開啟多執行緒的動作，一次同時處理 N 筆，也就是這裡會讓看誰跑的比較快完成，不會完全照著佇列的順序進行。
-             */
             NSString *_url = [_urlInfos objectForKey:_imageKey];
             //設定 NSOperation
             __block KRImageOperation *_operation = [[KRImageOperation alloc] initWithImageURL:_url];
+            _operation.timeout   = self.timeout;
             _operation.cacheMode = [self _findOperationCacheMode];
             //使用 ^Block (設定完成時候的動作)
             [_operation setCompletionBlock:^{
-                //NSLog(@"imageUrl : %@", _url);
-                //NSLog(@"imageDone : %@\n\n", _operation.doneImage);
-                //[self.caches addObject:_operation.doneImage];
                 //寫入快取
-                [self._caches setObject:_operation.doneImage forKey:_imageKey];
-                _operation.doneImage = nil;
-                if( _operationQueues.operationCount == 0 ){
-                    //全處理完了
-                    [self _resortKeys];
-                    [self start];
-                    [self _stopLoading];
+                if( _operation.doneImage ){
+                    [self._caches setObject:_operation.doneImage forKey:_imageKey];
+                    _operation.doneImage = nil;
+                }
+                //全處理完了 + 是最後一筆
+                if( _operationQueues.operationCount == 0 && _total == _count ){
+                    //NSLog(@"isCancelled : %i", self._isCancelled);
+                    //NSLog(@"wow : operationCount, total, count : %i, %i, %i", self._operationQueues.operationCount, _total, _count);
+                    if( !self._isCancelled ){
+                        [self _resortKeys];
+                        [self start];
+                        [self _stopLoading];
+                    }
                 }
             }];
             //寫入排程
@@ -444,15 +472,17 @@ static CGFloat krLoadingViewTag = 1799;
     self._scrollView.backgroundColor  = [UIColor clearColor];
 }
 
+/*
+ * 檢查這一支函式 ... 
+ */
 -(void)_setupImagesInScrollView{
     [self _scrollViewRemoveAllSubviews];
     CGRect _innerFrame = CGRectMake(0.0f,
                                     0.0f,
                                     self._scrollView.frame.size.width,
                                     self._scrollView.frame.size.height);
-    //for( UIImage *_image in self._caches ){
     for( NSString *_imageKey in self._sortedKeys ){
-        UIImage *_image         = [self._caches objectForKey:_imageKey];
+        UIImage *_image = [self._caches objectForKey:_imageKey];
         KRImageScrollView *_krImageScrollView = [[KRImageScrollView alloc] initWithFrame:_innerFrame];
         _krImageScrollView.maximumZoomScale = self.maximumZoomScale;
         _krImageScrollView.minimumZoomScale = self.minimumZoomScale;
@@ -461,11 +491,6 @@ static CGFloat krLoadingViewTag = 1799;
         [_krImageScrollView displayImage:_image];
         [self._scrollView addSubview:_krImageScrollView];
         [_krImageScrollView release];
-//        UIImageView *_imageView = [[UIImageView alloc] initWithFrame:_innerFrame];
-//        [_imageView setImage:_image];
-//        [_imageView setContentMode:UIViewContentModeScaleToFill];
-//        [self._scrollView addSubview:_imageView];
-//        [_imageView release];
         _innerFrame.origin.x += _innerFrame.size.width;
     }
     [self._scrollView setContentSize:CGSizeMake(_innerFrame.origin.x, _innerFrame.size.height)];
@@ -479,11 +504,17 @@ static CGFloat krLoadingViewTag = 1799;
         [self _setupImagesInScrollView];
         [self _scrollToPage:self.scrollToPage];
         [self._dragView addSubview:self._scrollView];
-        //Button
-        UIButton *_button = [UIButton buttonWithType:UIButtonTypeRoundedRect];
+        //
+        UIButton *_button = [UIButton buttonWithType:UIButtonTypeCustom];
+        [_button setFrame:CGRectMake(self._dragView.frame.size.width - 60.0f, 20.0f, 60.0f, 28.0f)];
+        [_button setTag:krBrowseButtonTag];
+        [_button setBackgroundColor:[UIColor clearColor]];
+        [_button setBackgroundImage:[self _imageNameNoCache:@"btn_done.png"] forState:UIControlStateNormal];
         [_button setTitle:@"完成" forState:UIControlStateNormal];
+        [_button setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+        [_button.titleLabel setFont:[UIFont boldSystemFontOfSize:14.0f]];
         [_button addTarget:self action:@selector(_removeBrowser:) forControlEvents:UIControlEventTouchUpInside];
-        [_button setFrame:CGRectMake(0.0, 40.0, 100.0f, 30.0f)];
+        //
         [self._dragView addSubview:_button];
         //
         [self._backgroundView addSubview:self._dragView];
@@ -507,21 +538,40 @@ static CGFloat krLoadingViewTag = 1799;
             [_imageView removeFromSuperview];
         }
     }
+    [[self._dragView viewWithTag:krBrowseButtonTag] removeFromSuperview];
     [self._backgroundView removeFromSuperview];
     [self._dragView removeFromSuperview];
     //[self.view removeFromSuperview];
+}
+
+-(CGFloat)_statusBarHeight{
+    return [UIApplication sharedApplication].statusBarFrame.size.height;
 }
 
 //
 -(void)_startLoading{
     UIView *_targetView = self.view;
     CGRect _frame = CGRectMake(0.0f, 0.0f, _targetView.frame.size.width, _targetView.frame.size.height);
+    //
     UIView *_loadingBackgroundView = [[UIView alloc] initWithFrame:_frame];
     [_loadingBackgroundView setTag:krLoadingViewTag];
     [_loadingBackgroundView setBackgroundColor:[UIColor blackColor]];
     [_loadingBackgroundView setAlpha:0.5];
+    //
+    UIButton *_closeButton = [UIButton buttonWithType:UIButtonTypeCustom];
+    [_closeButton setFrame:CGRectMake(_frame.size.width - 60.0f, [self _statusBarHeight], 60.0f, 28.0f)];
+    [_closeButton setTag:krLoadingButtonTag];
+    [_closeButton setBackgroundColor:[UIColor clearColor]];
+    [_closeButton setBackgroundImage:[self _imageNameNoCache:@"btn_done.png"] forState:UIControlStateNormal];
+    [_closeButton setTitle:@"取消" forState:UIControlStateNormal];
+    [_closeButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+    [_closeButton.titleLabel setFont:[UIFont boldSystemFontOfSize:14.0f]];
+    [_closeButton addTarget:self action:@selector(_cancelAndClose:) forControlEvents:UIControlEventTouchUpInside];
+    //
     [_targetView addSubview:_loadingBackgroundView];
     [_loadingBackgroundView release];
+    [_targetView addSubview:_closeButton];
+    //
     UIActivityIndicatorView *_loadingIndicator = [[UIActivityIndicatorView alloc]
                                                   initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleWhiteLarge];
     _loadingIndicator.center = CGPointMake(_targetView.bounds.size.width / 2.0f,
@@ -543,6 +593,7 @@ static CGFloat krLoadingViewTag = 1799;
             }
         }
     }
+    [[_targetView viewWithTag:krLoadingButtonTag] removeFromSuperview];
     [[_targetView viewWithTag:krLoadingViewTag] removeFromSuperview];
 }
 
@@ -582,15 +633,11 @@ static CGFloat krLoadingViewTag = 1799;
 
 -(void)_scrollToPage:(NSInteger)_toPage{
     NSInteger _scrollToIndex = _toPage > 0 ? _toPage - 1 : 0;
-    //取出 subviews
-    CGRect _scrollToFrame  = [[self._scrollView.subviews objectAtIndex:_scrollToIndex] frame];
-    [self._scrollView scrollRectToVisible:_scrollToFrame animated:NO];
-    /*
-     //Another method.
-     CGRect _scrollToFrame = self._scrollView.frame;
-     _scrollToFrame.origin.x = _scrollToFrame.size.width * _scrollPage;
-     _scrollToFrame.origin.y = 0.0f;
-     */
+    if( [self._scrollView.subviews count] > 0 ){
+        //取出 subviews
+        CGRect _scrollToFrame  = [[self._scrollView.subviews objectAtIndex:_scrollToIndex] frame];
+        [self._scrollView scrollRectToVisible:_scrollToFrame animated:NO];
+    }
 }
 
 /*
@@ -642,6 +689,8 @@ static CGFloat krLoadingViewTag = 1799;
         }
         [_temps setObject:_keys forKey:_keyName];
         [_temps setObject:_values forKey:_valueName];
+        [_keys release];
+        [_values release];
     }
     return _temps;
 }
@@ -654,7 +703,7 @@ static CGFloat krLoadingViewTag = 1799;
 }
 
 -(void)_refreshCaches{
-    [self._operationQueues cancelAllOperations];
+    [self _cancelAllOperations];
     [self._caches removeAllObjects];
 }
 
@@ -672,6 +721,21 @@ static CGFloat krLoadingViewTag = 1799;
 
 -(NSInteger)_findOperationCacheMode{
     return self.allowOperationCaching ? KRImageOperationAllowCache : KRImageOperationIgnoreCache;
+}
+
+-(void)_cancelAndClose:(id)sender{
+    self._isCancelled = YES;
+    [self _cancelAllOperations];
+    [self _stopLoading];
+    [self _appearStatus:YES];
+    [self _removeViewDragGesture];
+    [self _removeAllViews];
+    [self _moveView:self._gestureView toX:0.0f toY:0.0f];
+    //[self _removeBrowser:sender];
+}
+
+-(UIImage *)_imageNameNoCache:(NSString *)_imageName{
+    return [UIImage imageWithContentsOfFile:[NSString stringWithFormat:@"%@/%@", [[NSBundle mainBundle] bundlePath], _imageName]];
 }
 
 @end
@@ -704,6 +768,7 @@ static CGFloat krLoadingViewTag = 1799;
 @synthesize minimumZoomScale;
 @synthesize zoomScale;
 @synthesize clipsToBounds;
+@synthesize timeout;
 
 
 -(id)init{
@@ -742,8 +807,11 @@ static CGFloat krLoadingViewTag = 1799;
 }
 
 -(void)dealloc{
+    //NSLog(@"KRImageViewer Dealloc");
+    
     [view release];
     
+    [self._caches removeAllObjects];
     self._caches = nil;
     [_caches release];
     
@@ -755,6 +823,9 @@ static CGFloat krLoadingViewTag = 1799;
     [_operationQueues release];
     [_backgroundView release];
     [_dragView release];
+    
+    [self _scrollViewRemoveAllSubviews];
+    self._scrollView = nil;
     [_scrollView release];
     
     [super dealloc];
@@ -766,6 +837,7 @@ static CGFloat krLoadingViewTag = 1799;
 }
 
 -(void)start{
+    self._isCancelled = NO;
     [self _appearStatus:NO];
     [self _addViewDragGesture];
     [self _browseImages];
@@ -800,27 +872,32 @@ static CGFloat krLoadingViewTag = 1799;
 }
 
 -(void)pause{
+    self._isCancelled = YES;
     [self _appearStatus:YES];
     //暫停佇列處理
     [self._operationQueues setSuspended:YES];
 }
 
 -(void)restart{
+    self._isCancelled = NO;
     [self _appearStatus:NO];
     //繼續佇列處理
     [self._operationQueues setSuspended:NO];
 }
 
 -(void)preloadImageURLs:(NSDictionary *)_preloadImages{
-    //預載圖片
+    self._isCancelled = NO;
+    self._operationQueues.maxConcurrentOperationCount = 1;
     for( NSString *_imageKey in _preloadImages ){
         NSString *_url = [_preloadImages objectForKey:_imageKey];
-        //使用 __block 定義子進行宣告該 ^Block 不被重複 retain 
         __block KRImageOperation *_operation = [[KRImageOperation alloc] initWithImageURL:_url];
+        _operation.timeout   = self.timeout;
         _operation.cacheMode = [self _findOperationCacheMode];
         [_operation setCompletionBlock:^{
-            [self._caches setObject:_operation.doneImage forKey:_imageKey];
-            _operation.doneImage = nil;
+            if( _operation.doneImage ){
+                [self._caches setObject:_operation.doneImage forKey:_imageKey];
+                _operation.doneImage = nil;
+            }
             if( _operationQueues.operationCount == 0 ){
                 [self _resortKeys];
             }
@@ -831,24 +908,26 @@ static CGFloat krLoadingViewTag = 1799;
 }
 
 -(void)browseAnImageURL:(NSString *)_imageURL{
+    self._isCancelled = NO;
     [self _downloadImageURLs:[NSDictionary dictionaryWithObject:_imageURL forKey:@"0"]];
 }
 
 -(void)browseImageURLs:(NSDictionary *)_browseURLs{
+    self._isCancelled = NO;
     self._operationQueues.maxConcurrentOperationCount = self.maxConcurrentOperationCount;
     [self _downloadImageURLs:_browseURLs];
 }
 
 -(void)browseImages:(NSArray *)_images{
+    self._isCancelled = NO;
     [self._caches removeAllObjects];
-    //直接寫入快取裡，並瀏覽圖片
     NSInteger _index = 0;
     for( UIImage *_image in _images ){
         [self._caches setObject:_image forKey:[NSString stringWithFormat:@"%i", _index]];
         ++_index;
     }
+    [self _resortKeys];
     [self start];
-    //最後刪除快取
     [self._caches removeAllObjects];
 }
 
@@ -858,55 +937,14 @@ static CGFloat krLoadingViewTag = 1799;
 }
 
 -(UIView *)viewForZoomingInScrollView:(UIScrollView *)scrollView{
-    
-//    if( [scrollView.subviews count] > 0 ){
-//        //先暫時不支援縮放，因為還沒有完全搞定縮放的功能 ...
-//        //要如何在多個 subview 裡進行完美縮放 .... ?
-//        //return [scrollView.subviews objectAtIndex:0];
-//        //return [scrollView.subviews objectAtIndex:[self _currentIndex]];
-//    }
-    
     return nil;
 }
 
 //縮放結束
 -(void)scrollViewDidEndZooming:(UIScrollView *)scrollView withView:(UIView *)_subview atScale:(float)scale{
-    
-//    if( scale <= 1.0 ){
-//        //加回手勢
-//        [self _addViewDragGesture];        
-//    }else{
-//        //移除手勢
-//        [self _removeViewDragGesture];
-//    }
-    
+
 }
 
-
-//UITapGestureRecognizer *singleTap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(handleSingleTap:)];
-//[self._dragView addGestureRecognizer:singleTap];
-//[singleTap release];
-//
-//- (void)handleSingleTap:(UIGestureRecognizer *)gestureRecognizer{
-//    UIWindow *_mainWindow = [[UIApplication sharedApplication] keyWindow];
-//    BOOL _barHidden = [UIApplication sharedApplication].statusBarHidden;
-//    if( _barHidden ){
-//        if( _mainWindow ){
-//            UIView *_statusView =[[UIView alloc] initWithFrame:[[UIApplication sharedApplication] statusBarFrame]];
-//            [_statusView setBackgroundColor:[UIColor clearColor]];
-//            [_statusView setBackgroundColor:[UIColor blackColor]];
-//            [_statusView setTag:KR_STATUS_BAR_VIEW_TAG];
-//            [_mainWindow addSubview:_statusView];
-//            [_mainWindow sendSubviewToBack:_statusView];
-//            [_statusView release];
-//        }
-//    }else{
-//        if( [_mainWindow viewWithTag:KR_STATUS_BAR_VIEW_TAG] ){
-//            [[_mainWindow viewWithTag:KR_STATUS_BAR_VIEW_TAG] removeFromSuperview];
-//        }
-//    }
-//    [[UIApplication sharedApplication] setStatusBarHidden:!_barHidden withAnimation:UIStatusBarAnimationSlide];
-//}
 
 
 @end

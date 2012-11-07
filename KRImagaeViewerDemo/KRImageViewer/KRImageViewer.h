@@ -1,9 +1,10 @@
 //
-//  KRViewDrags.h
-//  MC
+//  KRImageViewer.h
 //
-//  Created by Kalvar on 12/10/2.
-//  Copyright (c) 2012年 Flashaim Inc. All rights reserved.
+//  ilovekalvar@gmail.com
+//
+//  Created by Kuo-Ming Lin on 2012/11/07.
+//  Copyright (c) 2012年 Kuo-Ming Lin. All rights reserved.
 //
 
 /*
@@ -66,6 +67,8 @@ typedef enum _krImageViewerDisapper{
     CGFloat minimumZoomScale;
     CGFloat zoomScale;
     BOOL clipsToBounds;
+    //讀取逾時
+    CGFloat timeout;
 }
 
 @property (nonatomic, retain) UIView *view;
@@ -81,7 +84,7 @@ typedef enum _krImageViewerDisapper{
 @property (nonatomic, assign) CGFloat minimumZoomScale;
 @property (nonatomic, assign) CGFloat zoomScale;
 @property (nonatomic, assign) BOOL clipsToBounds;
-
+@property (nonatomic, assign) CGFloat timeout;
 
 /*
  * Init
@@ -99,6 +102,7 @@ typedef enum _krImageViewerDisapper{
 -(void)refresh;
 -(void)pause;
 -(void)restart;
+
 /*
  * 預載圖片，但不瀏覽
  */
