@@ -91,6 +91,7 @@ static NSInteger krBrowseButtonTag  = 1801;
 -(void)_cancelAndClose:(id)sender;
 //
 -(UIImage *)_imageNameNoCache:(NSString *)_imageName;
+-(NSString *)_findImageIndexWithId:(NSString *)_imageId;
 
 @end
 
@@ -738,6 +739,22 @@ static NSInteger krBrowseButtonTag  = 1801;
     return [UIImage imageWithContentsOfFile:[NSString stringWithFormat:@"%@/%@", [[NSBundle mainBundle] bundlePath], _imageName]];
 }
 
+/*
+ * @ 從 image_id 找出 Scroll to Page Index
+ */
+-(NSString *)_findImageIndexWithId:(NSString *)_imageId{
+    NSInteger _index = 0;
+    if( _imageId ){
+        for( NSString *_key in self._sortedKeys ){
+            if( [_key isEqualToString:_imageId] ){
+                break;
+            }
+            ++_index;
+        }
+    }
+    return [NSString stringWithFormat:@"%i", _index];
+}
+
 @end
 
 
@@ -929,6 +946,14 @@ static NSInteger krBrowseButtonTag  = 1801;
     [self _resortKeys];
     [self start];
     [self._caches removeAllObjects];
+}
+
+-(void)findImageIndexWithId:(NSString *)_imageId{
+    self.scrollToPage = [[self _findImageIndexWithId:_imageId] integerValue];
+}
+
+-(void)findImageScrollPageWithId:(NSString *)_imageId{
+    self.scrollToPage = [[self _findImageIndexWithId:_imageId] integerValue] + 1;
 }
 
 #pragma UIScrollView Delegate

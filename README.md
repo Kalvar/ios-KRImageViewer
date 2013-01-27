@@ -41,6 +41,11 @@ KRImageViewer which you can browsing photos from the URLs, UIImages. That you ca
     [self.krImageViewer preloadImageURLs:_downloads];
 }
 
+-(void)followImageIdToFindScrollPage{
+    //To find the id '3' to setup default show up.
+    [self.krImageViewer findImageScrollPageWithId:@"3"];
+}
+
 -(IBAction)browsingPreloads:(id)sender{
     self.krImageViewer.scrollToPage = 2;
     [self.krImageViewer start];
@@ -73,7 +78,7 @@ KRImageViewer which you can browsing photos from the URLs, UIImages. That you ca
 
 ## Version
 
-KRImageViewer now is V0.6 beta.
+KRImageViewer now is V0.6.1 beta.
 
 ## License
 

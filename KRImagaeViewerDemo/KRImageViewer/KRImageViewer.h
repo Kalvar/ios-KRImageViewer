@@ -116,6 +116,10 @@ typedef enum _krImageViewerDisapper{
  * 直接輸入圖片進行瀏覽
  */
 -(void)browseImages:(NSArray *)_images;
-
+/*
+ * 依圖片 ID 搜尋其 Scroll 的 Index 或 Page Number
+ */
+-(void)findImageIndexWithId:(NSString *)_imageId;
+-(void)findImageScrollPageWithId:(NSString *)_imageId;
 
 @end
