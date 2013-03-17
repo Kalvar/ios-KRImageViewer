@@ -45,25 +45,21 @@
     self._hideStatusBar = ![UIApplication sharedApplication].statusBarHidden;
 }
 
--(void)_addGestures{
-    /*
-     * 點 1 下隱藏狀態列的手勢，暫時取消，因為會跟點 2 下放大的手勢衝突。
-     * 會變成在點 2 下放大時，也會啟動點 1 一下的手勢 XD。
-     */
-    //UITapGestureRecognizer *singleTap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(handleSingleTap:)];
+-(void)_addGestures
+{
+    UITapGestureRecognizer *singleTap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(handleSingleTap:)];
     UITapGestureRecognizer *doubleTap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(handleDoubleTap:)];
     //UITapGestureRecognizer *twoFingerTap = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(handleTwoFingerTap:)];
     
     [doubleTap setNumberOfTapsRequired:2];
     //[twoFingerTap setNumberOfTouchesRequired:2];
     
-    //[self addGestureRecognizer:singleTap];
+    [self addGestureRecognizer:singleTap];
     [self addGestureRecognizer:doubleTap];
-    //[self._imageView addGestureRecognizer:twoFingerTap];
+    //單擊跟雙擊共存的關鍵在這一行，如果雙擊確定偵測失敗才會觸發單擊
+    [singleTap requireGestureRecognizerToFail:doubleTap];
     
-    //[singleTap release];
-    [doubleTap release];
-    //[twoFingerTap release];
+    //[self._imageView addGestureRecognizer:twoFingerTap];
 }
 
 -(CGRect)_zoomRectForScale:(float)scale withCenter:(CGPoint)center{

@@ -186,15 +186,14 @@ static NSInteger krBrowseButtonTag  = 1801;
              toX:(CGFloat)_toX
              toY:(CGFloat)_toY
 {
-    [UIView beginAnimations:nil context:NULL];
-    [UIView setAnimationDuration:self.durations];
-    [UIView setAnimationDelegate:self];
-    [UIView setAnimationBeginsFromCurrentState:YES];
-    _targetView.frame = CGRectMake(_toX,
-                                   _toY,
-                                   _targetView.frame.size.width,
-                                   _targetView.frame.size.height);
-    [UIView commitAnimations];
+    [UIView animateWithDuration:self.durations delay:0.0f options:UIViewAnimationOptionBeginFromCurrentState animations:^{
+        _targetView.frame = CGRectMake(_toX,
+                                       _toY,
+                                       _targetView.frame.size.width,
+                                       _targetView.frame.size.height);
+    } completion:^(BOOL finished) {
+        //...
+    }];
 }
 
 -(CGFloat)_dragDisapperInstance{
