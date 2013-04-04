@@ -69,9 +69,10 @@ typedef enum _krImageViewerDisapper{
     BOOL clipsToBounds;
     //讀取逾時
     CGFloat timeout;
+    
 }
 
-@property (nonatomic, retain) UIView *view;
+@property (nonatomic, strong) UIView *view;
 @property (nonatomic, assign) krImageViewerModes dragMode;
 @property (nonatomic, assign) krImageViewerDisapper dragDisapperMode;
 @property (nonatomic, assign) BOOL allowOperationCaching;
@@ -102,6 +103,8 @@ typedef enum _krImageViewerDisapper{
 -(void)refresh;
 -(void)pause;
 -(void)restart;
+-(void)findImageIndexWithId:(NSString *)_imageId;
+-(void)findImageScrollPageWithId:(NSString *)_imageId;
 
 /*
  * 預載圖片，但不瀏覽
@@ -117,9 +120,12 @@ typedef enum _krImageViewerDisapper{
  */
 -(void)browseImages:(NSArray *)_images;
 /*
- * 依圖片 ID 搜尋其 Scroll 的 Index 或 Page Number
+ * 直接瀏覽圖片，並且可指定要先移動到哪一張「圖片」開始瀏覽。
  */
--(void)findImageIndexWithId:(NSString *)_imageId;
--(void)findImageScrollPageWithId:(NSString *)_imageId;
+-(void)browseImages:(NSArray *)_images startIndex:(NSInteger)_startIndex;
+/*
+ * 逐頁瀏覽圖片，並設定要優先下載的圖片 ( 也就「一張一張 Load」的模式 )
+ */
+-(void)browsePageByPageImageURLs:(NSDictionary *)_browseURLs firstShowImageId:(NSString *)_fireImageId;
 
 @end

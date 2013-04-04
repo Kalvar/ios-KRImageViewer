@@ -15,9 +15,9 @@ static NSString *krImageOperationIsExecuting = @"isExecuting";
 
 @interface KRImageOperation ()
 
-@property (nonatomic, retain) NSURLConnection *_connection;
-@property (nonatomic, retain) NSURL *_photoURL;
-@property (nonatomic, retain) NSMutableData *_receivedData;
+@property (nonatomic, strong) NSURLConnection *_connection;
+@property (nonatomic, strong) NSURL *_photoURL;
+@property (nonatomic, strong) NSMutableData *_receivedData;
 @property (nonatomic, assign) BOOL _isExecuting;
 @property (nonatomic, assign) BOOL _isFinished;
 @property (nonatomic, assign) BOOL _isCancelled;
@@ -98,21 +98,6 @@ static NSString *krImageOperationIsExecuting = @"isExecuting";
     return self;
 }
 
--(void)dealloc{
-    //NSLog(@"KRImageOperation Dealloc");
-    
-    self._connection = nil;
-    [_connection release];
-    [_photoURL release];
-    
-    self.doneImage = nil;
-    [doneImage release];
-    
-    self._receivedData = nil;
-    [_receivedData release];
-    
-    [super dealloc];
-}
 
 #pragma My Methods
 
@@ -146,7 +131,6 @@ static NSString *krImageOperationIsExecuting = @"isExecuting";
         [self._connection scheduleInRunLoop:[NSRunLoop mainRunLoop] forMode:NSRunLoopCommonModes];
     }
     [self._connection start];
-    [request release];
 }
 
 -(void)cancel{

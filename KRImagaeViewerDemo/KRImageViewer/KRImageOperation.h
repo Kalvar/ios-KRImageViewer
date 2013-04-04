@@ -23,7 +23,7 @@ typedef enum{
     CGFloat timeout;
 }
 
-@property (nonatomic, retain) UIImage *doneImage;
+@property (nonatomic, strong) UIImage *doneImage;
 @property (nonatomic, assign) CGFloat progress;
 @property (nonatomic, assign) KRImageOperationConnectionCacheModes cacheMode;
 @property (nonatomic, assign) CGFloat timeout;

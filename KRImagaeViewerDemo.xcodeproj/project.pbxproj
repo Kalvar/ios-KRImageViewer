@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		8E182710170E01210066930A /* ele_default_waiting_load.png in Resources */ = {isa = PBXBuildFile; fileRef = 8E18270E170E01210066930A /* ele_default_waiting_load.png */; };
+		8E182711170E01210066930A /* ele_default_waiting_load@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 8E18270F170E01210066930A /* ele_default_waiting_load@2x.png */; };
 		8E9086E1164A626A0040FEF0 /* btn_done.png in Resources */ = {isa = PBXBuildFile; fileRef = 8E9086DF164A626A0040FEF0 /* btn_done.png */; };
 		8E9086E2164A626A0040FEF0 /* btn_done@2x.png in Resources */ = {isa = PBXBuildFile; fileRef = 8E9086E0164A626A0040FEF0 /* btn_done@2x.png */; };
 		8E9086E8164A64420040FEF0 /* image1.png in Resources */ = {isa = PBXBuildFile; fileRef = 8E9086E5164A64420040FEF0 /* image1.png */; };
@@ -30,6 +32,8 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		8E18270E170E01210066930A /* ele_default_waiting_load.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = ele_default_waiting_load.png; sourceTree = "<group>"; };
+		8E18270F170E01210066930A /* ele_default_waiting_load@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "ele_default_waiting_load@2x.png"; sourceTree = "<group>"; };
 		8E9086DF164A626A0040FEF0 /* btn_done.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = btn_done.png; sourceTree = "<group>"; };
 		8E9086E0164A626A0040FEF0 /* btn_done@2x.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "btn_done@2x.png"; sourceTree = "<group>"; };
 		8E9086E5164A64420040FEF0 /* image1.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = image1.png; sourceTree = "<group>"; };
@@ -80,6 +84,8 @@
 			children = (
 				8E9086DF164A626A0040FEF0 /* btn_done.png */,
 				8E9086E0164A626A0040FEF0 /* btn_done@2x.png */,
+				8E18270E170E01210066930A /* ele_default_waiting_load.png */,
+				8E18270F170E01210066930A /* ele_default_waiting_load@2x.png */,
 			);
 			path = Images;
 			sourceTree = "<group>";
@@ -229,6 +235,8 @@
 				8E9086E8164A64420040FEF0 /* image1.png in Resources */,
 				8E9086E9164A64420040FEF0 /* image2.png in Resources */,
 				8E9086EA164A64420040FEF0 /* image3.png in Resources */,
+				8E182710170E01210066930A /* ele_default_waiting_load.png in Resources */,
+				8E182711170E01210066930A /* ele_default_waiting_load@2x.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -321,6 +329,7 @@
 		8EA2E97316342E2800F323E6 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_ENABLE_OBJC_ARC = YES;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "KRImagaeViewerDemo/KRImagaeViewerDemo-Prefix.pch";
 				INFOPLIST_FILE = "KRImagaeViewerDemo/KRImagaeViewerDemo-Info.plist";
@@ -333,6 +342,7 @@
 		8EA2E97416342E2800F323E6 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CLANG_ENABLE_OBJC_ARC = YES;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "KRImagaeViewerDemo/KRImagaeViewerDemo-Prefix.pch";
 				INFOPLIST_FILE = "KRImagaeViewerDemo/KRImagaeViewerDemo-Info.plist";

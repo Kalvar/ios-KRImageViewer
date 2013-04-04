@@ -6,7 +6,7 @@
 
 ## Supports
 
-KRImageViewer supports MRC ( Manual Reference Counting ), if you did want it support to ARC, that just use Xode tool to auto convert to ARC. ( Xcode > Edit > Refactor > Convert to Objective-C ARC )
+KRImageViewer supports ARC.
 
 ## How To Get Started
 
@@ -15,19 +15,27 @@ KRImageViewer which you can browsing photos from the URLs, UIImages. That you ca
 ``` objective-c
 - (void)viewDidLoad
 {
+    [super viewDidLoad];
     krImageViewer = [[KRImageViewer alloc] initWithDragMode:krImageViewerModeOfTopToBottom];
     self.krImageViewer.maxConcurrentOperationCount = 1;
     self.krImageViewer.dragDisapperMode            = krImageViewerDisapperAfterMiddle;
     self.krImageViewer.allowOperationCaching       = NO;
     self.krImageViewer.timeout                     = 30.0f;
     [self preloads];
-    [super viewDidLoad];
+    
 }
 
 -(void)viewDidAppear:(BOOL)animated{
     [self.krImageViewer resetView:self.view.window];
     [super viewDidAppear:animated];
 }
+
+- (void)didReceiveMemoryWarning
+{
+    [super didReceiveMemoryWarning];
+    // Dispose of any resources that can be recreated.
+}
+
 
 #pragma Method Samples
 -(void)preloads{
@@ -51,7 +59,8 @@ KRImageViewer which you can browsing photos from the URLs, UIImages. That you ca
     [self.krImageViewer start];
 }
 
--(IBAction)browsingURLs:(id)sender{
+-(IBAction)browsingURLs:(id)sender
+{
     NSDictionary *_downloads = [NSDictionary dictionaryWithObjectsAndKeys:
                                 @"http://farm9.staticflickr.com/8459/7945134514_e5a779ee5f_s.jpg", @"1",
                                 @"http://farm9.staticflickr.com/8435/7944303392_a856d79802_s.jpg", @"2",
@@ -73,6 +82,17 @@ KRImageViewer which you can browsing photos from the URLs, UIImages. That you ca
                               [UIImage imageNamed:@"image3.png"],
                               nil];
     [self.krImageViewer browseImages:_directWatchs];
+}
+
+-(IBAction)browsingImagesPageByPage:(id)sender
+{
+    //When you gonna scroll the ImageViewer, it will Page by Page to download the image and show it.
+    NSDictionary *_downloads = [NSDictionary dictionaryWithObjectsAndKeys:
+                                @"http://farm9.staticflickr.com/8459/7945134514_e5a779ee5f_s.jpg", @"1",
+                                @"http://farm9.staticflickr.com/8435/7944303392_a856d79802_s.jpg", @"2",
+                                @"http://farm9.staticflickr.com/8449/7943919662_67f7345f8b_s.jpg", @"3",
+                                nil];
+    [self.krImageViewer browsePageByPageImageURLs:_downloads firstShowImageId:@"2"];
 }
 ```
 

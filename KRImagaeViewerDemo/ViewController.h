@@ -12,7 +12,7 @@
 
 @interface ViewController : UIViewController
 
-@property (nonatomic, retain) KRImageViewer *krImageViewer;
+@property (nonatomic, strong) KRImageViewer *krImageViewer;
 
 -(IBAction)browsingPreloads:(id)sender;
 -(IBAction)browsingURLs:(id)sender;
