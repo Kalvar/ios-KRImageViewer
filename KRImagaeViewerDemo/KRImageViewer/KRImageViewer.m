@@ -1156,7 +1156,6 @@ static NSInteger krBrowseButtonTag  = 1801;
 -(void)browsePageByPageImageURLs:(NSDictionary *)_browseURLs firstShowImageId:(NSString *)_fireImageId
 {
     self._isOncePageToLoading = YES;
-    [self _cancelAllOperations];
     self._imageInfos  = [NSMutableDictionary dictionaryWithDictionary:_browseURLs];
     NSDictionary *_sortedURLs = [self _sortDictionary:_browseURLs ascending:YES];
     self._sortedKeys  = [NSMutableArray arrayWithArray:[_sortedURLs objectForKey:@"keys"]];
@@ -1181,6 +1180,7 @@ static NSInteger krBrowseButtonTag  = 1801;
     /*
      * @ 開始載入當前圖片
      */
+    [self _cancelAllOperations];
     [self _loadImageWithPage:self.scrollToPage];
     
 }

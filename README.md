@@ -22,20 +22,12 @@ KRImageViewer which you can browsing photos from the URLs, UIImages. That you ca
     self.krImageViewer.allowOperationCaching       = NO;
     self.krImageViewer.timeout                     = 30.0f;
     [self preloads];
-    
 }
 
 -(void)viewDidAppear:(BOOL)animated{
-    [self.krImageViewer resetView:self.view.window];
     [super viewDidAppear:animated];
+    [self.krImageViewer resetView:self.view.window];
 }
-
-- (void)didReceiveMemoryWarning
-{
-    [super didReceiveMemoryWarning];
-    // Dispose of any resources that can be recreated.
-}
-
 
 #pragma Method Samples
 -(void)preloads{
@@ -98,7 +90,7 @@ KRImageViewer which you can browsing photos from the URLs, UIImages. That you ca
 
 ## Version
 
-KRImageViewer now is V0.6.1 beta.
+KRImageViewer now is V0.7 beta.
 
 ## License
 

@@ -29,9 +29,10 @@
     
 }
 
--(void)viewDidAppear:(BOOL)animated{
-    [self.krImageViewer resetView:self.view.window];
+-(void)viewDidAppear:(BOOL)animated
+{
     [super viewDidAppear:animated];
+    [self.krImageViewer resetView:self.view.window];
 }
 
 - (void)didReceiveMemoryWarning
@@ -42,7 +43,8 @@
 
 
 #pragma Method Samples
--(void)preloads{
+-(void)preloads
+{
     //To setup the Keys and URLs.
     NSDictionary *_downloads = [NSDictionary dictionaryWithObjectsAndKeys:
                                 @"http://farm9.staticflickr.com/8459/7945134514_e5a779ee5f_s.jpg", @"1",
@@ -53,12 +55,14 @@
     [self.krImageViewer preloadImageURLs:_downloads];
 }
 
--(void)followImageIdToFindScrollPage{
+-(void)followImageIdToFindScrollPage
+{
     //To find the id '3' to setup default show up.
     [self.krImageViewer findImageScrollPageWithId:@"3"];
 }
 
--(IBAction)browsingPreloads:(id)sender{
+-(IBAction)browsingPreloads:(id)sender
+{
     self.krImageViewer.scrollToPage = 2;
     [self.krImageViewer start];
 }
@@ -78,7 +82,8 @@
     //[self.krImageViewer browseAnImageURL:@"http://farm9.staticflickr.com/8449/7943919662_67f7345f8b_s.jpg"];
 }
 
--(IBAction)browsingImages:(id)sender{
+-(IBAction)browsingImages:(id)sender
+{
     //Or you can browse UIImages.
     NSArray *_directWatchs = [NSArray arrayWithObjects:
                               [UIImage imageNamed:@"image1.png"],
