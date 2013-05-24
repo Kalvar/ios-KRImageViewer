@@ -1085,21 +1085,24 @@ static NSInteger krBrowseButtonTag  = 1801;
     self._operationQueues.maxConcurrentOperationCount = 1;
     for( NSString *_imageKey in _preloadImages )
     {
-        NSString *_url = [_preloadImages objectForKey:_imageKey];
-        KRImageOperation *_op = [[KRImageOperation alloc] initWithImageURL:_url];
-        __weak KRImageOperation *_operation = _op;
-        _operation.timeout   = self.timeout;
-        _operation.cacheMode = [self _findOperationCacheMode];
-        [_operation setCompletionBlock:^{
-            if( _operation.doneImage ){
-                [self._caches setObject:_operation.doneImage forKey:_imageKey];
-                _operation.doneImage = nil;
-            }
-            if( _operationQueues.operationCount == 0 ){
-                [self _resortKeys];
-            }
-        }];
-        [_operationQueues addOperation:_operation];
+        if( ![self._caches objectForKey:_imageKey] )
+        {
+            NSString *_url = [_preloadImages objectForKey:_imageKey];
+            KRImageOperation *_op = [[KRImageOperation alloc] initWithImageURL:_url];
+            __weak KRImageOperation *_operation = _op;
+            _operation.timeout   = self.timeout;
+            _operation.cacheMode = [self _findOperationCacheMode];
+            [_operation setCompletionBlock:^{
+                if( _operation.doneImage ){
+                    [self._caches setObject:_operation.doneImage forKey:_imageKey];
+                    _operation.doneImage = nil;
+                }
+                if( _operationQueues.operationCount == 0 ){
+                    [self _resortKeys];
+                }
+            }];
+            [_operationQueues addOperation:_operation];
+        }
     }
 }
 
