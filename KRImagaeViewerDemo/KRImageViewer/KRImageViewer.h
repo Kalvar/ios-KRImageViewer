@@ -7,22 +7,15 @@
 //  Copyright (c) 2012年 Kuo-Ming Lin. All rights reserved.
 //
 
-/*
- * 模仿 Facebook App 的看圖方式 ( 寫一支 KRImagePreviewer Class )
- *  - 一個全透明 UIView (A)
- *  - 一個半透明黑色背景 UIView (B)
- *  - 修改 KRDragView 上下拖拉 ImageView 移除圖片
- *  - 設定 (B) 有 KRDragView 的上下拖拉手勢 view
- *  - 寫入 (B) ScrollView  進行左右看大圖
- *  - 可設定預設 ScrollView 的顯示圖
- */
-
 #import <UIKit/UIKit.h>
 
 #define KRIV_ZOOM_SCALE 2.5
 
+@protocol KRImageViewerDelegate;
+
 //圖片的拖拉消失模式
-typedef enum _krImageViewerModes {
+typedef enum _krImageViewerModes
+{
     //兩邊都行( 預設 )
     krImageViewerModeOfBoth = 0,
     //由上至下滑
@@ -32,7 +25,8 @@ typedef enum _krImageViewerModes {
 } krImageViewerModes;
 
 //圖片自動消失的距離
-typedef enum _krImageViewerDisapper{
+typedef enum _krImageViewerDisapper
+{
     //過中線才消失
     krImageViewerDisapperAfterMiddle = 0,
     //離開螢幕 25% 才消失
@@ -43,7 +37,9 @@ typedef enum _krImageViewerDisapper{
     krImageViewerDisapperNothing
 } krImageViewerDisapper;
 
-@interface KRImageViewer : NSObject<UIScrollViewDelegate>{
+@interface KRImageViewer : NSObject<UIScrollViewDelegate>
+{
+    __weak id<KRImageViewerDelegate> delegate;
     //作用的 View
     UIView *view;
     //拖拉模式
@@ -72,6 +68,7 @@ typedef enum _krImageViewerDisapper{
     
 }
 
+@property (nonatomic, weak) id<KRImageViewerDelegate> delegate;
 @property (nonatomic, strong) UIView *view;
 @property (nonatomic, assign) krImageViewerModes dragMode;
 @property (nonatomic, assign) krImageViewerDisapper dragDisapperMode;
@@ -127,5 +124,16 @@ typedef enum _krImageViewerDisapper{
  * 逐頁瀏覽圖片，並設定要優先下載的圖片 ( 也就「一張一張 Load」的模式 )
  */
 -(void)browsePageByPageImageURLs:(NSDictionary *)_browseURLs firstShowImageId:(NSString *)_fireImageId;
+
+@end
+
+@protocol KRImageViewerDelegate <NSObject>
+
+@optional
+//現在正瀏覽到哪一頁
+-(void)krImageViewerIsBrowsingPage:(NSInteger)_browsingPage;
+//現在正捲動到哪一頁
+-(void)krImageViewerIsScrollingToPage:(NSInteger)_scrollingPage;
+
 
 @end

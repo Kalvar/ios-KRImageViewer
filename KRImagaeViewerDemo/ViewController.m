@@ -9,7 +9,7 @@
 #import "ViewController.h"
 #import "KRImageViewer.h"
 
-@interface ViewController ()
+@interface ViewController ()<KRImageViewerDelegate>
 
 @end
 
@@ -21,6 +21,7 @@
 {
     [super viewDidLoad];
     krImageViewer = [[KRImageViewer alloc] initWithDragMode:krImageViewerModeOfTopToBottom];
+    self.krImageViewer.delegate                    = self;
     self.krImageViewer.maxConcurrentOperationCount = 1;
     self.krImageViewer.dragDisapperMode            = krImageViewerDisapperAfterMiddle;
     self.krImageViewer.allowOperationCaching       = NO;
@@ -102,6 +103,13 @@
                                 @"http://farm9.staticflickr.com/8449/7943919662_67f7345f8b_s.jpg", @"3",
                                 nil];
     [self.krImageViewer browsePageByPageImageURLs:_downloads firstShowImageId:@"2"];
+}
+
+#pragma KRImageViewerDelegate
+-(void)krImageViewerIsScrollingToPage:(NSInteger)_scrollingPage
+{
+    //The ImageViewer is Scrolling to which page and trigger here.
+    //...
 }
 
 @end

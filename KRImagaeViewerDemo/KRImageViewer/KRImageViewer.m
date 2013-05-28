@@ -102,6 +102,8 @@ static NSInteger krBrowseButtonTag  = 1801;
 -(NSString *)_findImageIndexWithId:(NSString *)_imageId;
 -(void)_loadImageWithPage:(NSInteger)_loadPage;
 -(void)_addDefaultImagesOnScrollView;
+-(void)_firedBrowsingDelegate;
+-(void)_firedScrollingDelegate;
 
 @end
 
@@ -862,6 +864,12 @@ static NSInteger krBrowseButtonTag  = 1801;
     dispatch_queue_t queue = dispatch_queue_create("_loadImageWithPageQueue", NULL);
     dispatch_async(queue, ^(void) {
         NSInteger _loadIndex = _loadPage > 1 ? _loadPage - 1 : 0;
+        if( _loadIndex > ( self._sortedKeys.count - 1 ) )
+        {
+            return;
+        }
+        //[self _firedBrowsingDelegate];
+        [self _firedScrollingDelegate];
         //下載圖片
         NSString *_imageKey = [self._sortedKeys objectAtIndex:_loadIndex];
         NSString *_imageURL = [self._imageInfos objectForKey:_imageKey];
@@ -941,6 +949,28 @@ static NSInteger krBrowseButtonTag  = 1801;
     [self._scrollView setContentSize:CGSizeMake(_innerFrame.origin.x, _innerFrame.size.height)];
 }
 
+-(void)_firedBrowsingDelegate
+{
+    if( self.delegate )
+    {
+        if( [self.delegate respondsToSelector:@selector(krImageViewerIsBrowsingPage:)] )
+        {
+            [self.delegate krImageViewerIsBrowsingPage:self.scrollToPage];
+        }
+    }
+}
+
+-(void)_firedScrollingDelegate
+{
+    if( self.delegate )
+    {
+        if( [self.delegate respondsToSelector:@selector(krImageViewerIsScrollingToPage:)] )
+        {
+            [self.delegate krImageViewerIsScrollingToPage:self.scrollToPage];
+        }
+    }
+}
+
 @end
 
 
@@ -960,6 +990,7 @@ static NSInteger krBrowseButtonTag  = 1801;
 @synthesize _isCancelled;
 @synthesize _isOncePageToLoading;
 //
+@synthesize delegate = _delegate;
 @synthesize view;
 @synthesize dragMode;
 @synthesize dragDisapperMode;
