@@ -39,9 +39,40 @@
 - (void)didReceiveMemoryWarning
 {
     [super didReceiveMemoryWarning];
-    // Dispose of any resources that can be recreated.
+    
 }
 
+/*
+ * @ 允許旋轉
+ */
+-(BOOL)shouldAutorotate
+{
+    return YES;
+}
+
+/*
+ * @ 允許的旋轉方向
+ */
+-(NSUInteger)supportedInterfaceOrientations
+{
+    return UIInterfaceOrientationMaskAll;
+}
+
+/*
+ * @ 將要旋轉成什麼方向
+ */
+-(void)willRotateToInterfaceOrientation:(UIInterfaceOrientation)toInterfaceOrientation duration:(NSTimeInterval)duration
+{
+    [self.krImageViewer reloadImagesWhenRotate:toInterfaceOrientation];
+}
+
+/*
+ * @ 從哪個方向旋轉成現在的樣子
+ */
+-(void)didRotateFromInterfaceOrientation:(UIInterfaceOrientation)fromInterfaceOrientation
+{
+    //NSLog(@"fromInterfaceOrientation : %i", fromInterfaceOrientation);
+}
 
 #pragma Method Samples
 -(void)preloads

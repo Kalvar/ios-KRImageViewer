@@ -20,5 +20,7 @@
 
 -(void)displayImage:(UIImage *)_subImage;
 -(void)resetImage:(UIImage *)_subImage;
+-(void)resizeImageView;
+-(void)resize:(CGRect)_frame;
 
 @end

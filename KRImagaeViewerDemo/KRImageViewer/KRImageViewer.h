@@ -65,7 +65,8 @@ typedef enum _krImageViewerDisapper
     BOOL clipsToBounds;
     //讀取逾時
     CGFloat timeout;
-    
+    //現在的 Device 方向
+    UIInterfaceOrientation interfaceOrientation;
 }
 
 @property (nonatomic, weak) id<KRImageViewerDelegate> delegate;
@@ -83,6 +84,7 @@ typedef enum _krImageViewerDisapper
 @property (nonatomic, assign) CGFloat zoomScale;
 @property (nonatomic, assign) BOOL clipsToBounds;
 @property (nonatomic, assign) CGFloat timeout;
+@property (nonatomic, assign) UIInterfaceOrientation interfaceOrientation;
 
 /*
  * Init
@@ -124,6 +126,10 @@ typedef enum _krImageViewerDisapper
  * 逐頁瀏覽圖片，並設定要優先下載的圖片 ( 也就「一張一張 Load」的模式 )
  */
 -(void)browsePageByPageImageURLs:(NSDictionary *)_browseURLs firstShowImageId:(NSString *)_fireImageId;
+/*
+ * 旋轉時重載入
+ */
+-(void)reloadImagesWhenRotate:(UIInterfaceOrientation)_toInterfaceOrientation;
 
 @end
 

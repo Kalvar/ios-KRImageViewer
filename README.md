@@ -1,8 +1,9 @@
 ## Screen Shot
 
-<img src="https://dl.dropbox.com/u/83663874/GitHubs/KRImageViewer-1.png" alt="KRImageViewer" title="KRImageViewer" style="margin: 20px;" class="center" />
-。
-<img src="https://dl.dropbox.com/u/83663874/GitHubs/KRImageViewer-2.png" alt="KRImageViewer" title="KRImageViewer" style="margin: 20px;" class="center" />
+<img src="https://dl.dropbox.com/u/83663874/GitHubs/KRImageViewer-1.png" alt="KRImageViewer" title="KRImageViewer" style="margin: 20px;" class="center" /> &nbsp;
+<img src="https://dl.dropbox.com/u/83663874/GitHubs/KRImageViewer-2.png" alt="KRImageViewer" title="KRImageViewer" style="margin: 20px;" class="center" /> &nbsp;
+<img src="https://dl.dropbox.com/u/83663874/GitHubs/KRImageViewer-3.png" alt="KRImageViewer" title="KRImageViewer" style="margin: 20px;" class="center" /> &nbsp;
+<img src="https://dl.dropbox.com/u/83663874/GitHubs/KRImageViewer-4.png" alt="KRImageViewer" title="KRImageViewer" style="margin: 20px;" class="center" />
 
 ## Supports
 
@@ -24,13 +25,40 @@ KRImageViewer which you can browsing photos from the URLs, UIImages. That you ca
     [self preloads];
 }
 
--(void)viewDidAppear:(BOOL)animated{
+-(void)viewDidAppear:(BOOL)animated
+{
     [super viewDidAppear:animated];
     [self.krImageViewer resetView:self.view.window];
 }
 
+/*
+ * @ 允許旋轉
+ */
+-(BOOL)shouldAutorotate
+{
+    return YES;
+}
+
+/*
+ * @ 允許的旋轉方向
+ */
+-(NSUInteger)supportedInterfaceOrientations
+{
+    return UIInterfaceOrientationMaskAll;
+}
+
+/*
+ * @ 將要旋轉成什麼方向
+ */
+-(void)willRotateToInterfaceOrientation:(UIInterfaceOrientation)toInterfaceOrientation duration:(NSTimeInterval)duration
+{
+    //Here to reload the KRImageViewer rotation.
+    [self.krImageViewer reloadImagesWhenRotate:toInterfaceOrientation];
+}
+
 #pragma Method Samples
--(void)preloads{
+-(void)preloads
+{
     //To setup the Keys and URLs.
     NSDictionary *_downloads = [NSDictionary dictionaryWithObjectsAndKeys:
                                 @"http://farm9.staticflickr.com/8459/7945134514_e5a779ee5f_s.jpg", @"1",
@@ -41,12 +69,14 @@ KRImageViewer which you can browsing photos from the URLs, UIImages. That you ca
     [self.krImageViewer preloadImageURLs:_downloads];
 }
 
--(void)followImageIdToFindScrollPage{
+-(void)followImageIdToFindScrollPage
+{
     //To find the id '3' to setup default show up.
     [self.krImageViewer findImageScrollPageWithId:@"3"];
 }
 
--(IBAction)browsingPreloads:(id)sender{
+-(IBAction)browsingPreloads:(id)sender
+{
     self.krImageViewer.scrollToPage = 2;
     [self.krImageViewer start];
 }
@@ -66,7 +96,8 @@ KRImageViewer which you can browsing photos from the URLs, UIImages. That you ca
     //[self.krImageViewer browseAnImageURL:@"http://farm9.staticflickr.com/8449/7943919662_67f7345f8b_s.jpg"];
 }
 
--(IBAction)browsingImages:(id)sender{
+-(IBAction)browsingImages:(id)sender
+{
     //Or you can browse UIImages.
     NSArray *_directWatchs = [NSArray arrayWithObjects:
                               [UIImage imageNamed:@"image1.png"],
@@ -90,11 +121,15 @@ KRImageViewer which you can browsing photos from the URLs, UIImages. That you ca
 
 ## Version
 
-KRImageViewer now is V0.7 beta.
+KRImageViewer now is V0.9 beta.
 
 ## License
 
 KRImageViewer is available under the MIT license ( or Whatever you wanna do ). See the LICENSE file for more info.
+
+## Updated Logs
+
+V0.9 added a function to fit rotations.
 
 ## Others
 

@@ -18,7 +18,8 @@ static NSInteger krLoadingViewTag   = 1799;
 static NSInteger krLoadingButtonTag = 1800;
 static NSInteger krBrowseButtonTag  = 1801;
 
-@interface KRImageViewer (){
+@interface KRImageViewer ()
+{
     UIPanGestureRecognizer *_panGestureRecognizer;
     NSOperationQueue *_operationQueues;
     UIView *_backgroundView;
@@ -50,6 +51,7 @@ static NSInteger krBrowseButtonTag  = 1801;
 @interface KRImageViewer (fixDrages)
 
 -(void)_initWithVars;
+-(void)_resetGestureView;
 -(void)_resetViewVars;
 -(void)_setupBackgroundView;
 -(void)_setupDragView;
@@ -104,6 +106,12 @@ static NSInteger krBrowseButtonTag  = 1801;
 -(void)_addDefaultImagesOnScrollView;
 -(void)_firedBrowsingDelegate;
 -(void)_firedScrollingDelegate;
+-(void)_resizeScrollViewWithFrame:(CGRect)_frame;
+-(void)_resizeBackgroundViewWithFrame:(CGRect)_frame andTransform:(CGAffineTransform)_transform;
+-(void)_resizeDragViewWithFrame:(CGRect)_frame;
+-(void)_resizeDoneButton:(UIButton *)_button;
+-(void)_resizeCancelButton:(UIButton *)_button withSuperFrame:(CGRect)_superFrame;
+
 
 @end
 
@@ -111,7 +119,8 @@ static NSInteger krBrowseButtonTag  = 1801;
 
 -(void)_initWithVars
 {
-    if( self.maxConcurrentOperationCount <= 0 ){
+    if( self.maxConcurrentOperationCount <= 0 )
+    {
         //一次只處理 n 個 Operation
         self.maxConcurrentOperationCount = NSOperationQueueDefaultMaxConcurrentOperationCount;
     }
@@ -129,9 +138,20 @@ static NSInteger krBrowseButtonTag  = 1801;
     self.minimumZoomScale      = 1.0f;
     self.zoomScale             = 2.0f;
     self.clipsToBounds         = YES;
-    self._isCancelled          = NO;
     self.timeout               = 60.0f;
+    self.interfaceOrientation  = UIInterfaceOrientationPortrait;
+    self._isCancelled          = NO;
     self._isOncePageToLoading  = NO;
+}
+
+-(void)_resetGestureView
+{
+    if( self._dragView )
+    {
+        self._gestureView   = self._dragView;
+        self._orignalPoints = self._gestureView.center;
+        [self _resetMatchPoints];
+    }
 }
 
 -(void)_resetViewVars
@@ -139,21 +159,20 @@ static NSInteger krBrowseButtonTag  = 1801;
     [self _setupBackgroundView];
     [self _setupDragView];
     [self _setupScrollView];
-    if( self._dragView ){
-        self._gestureView   = self._dragView;
-        self._orignalPoints = self._gestureView.center;
-        [self _resetMatchPoints];
-    }
+    [self _resetGestureView];
 }
 
 /*
  * @ 半透明背景 UIView 會隨著 self.view 的 frame 同步調整
  */
--(void)_setupBackgroundView{
-    if( !_backgroundView ){
+-(void)_setupBackgroundView
+{
+    if( !_backgroundView )
+    {
         _backgroundView = [[UIView alloc] init];
     }
-    if( self.view ){
+    if( self.view )
+    {
         [self._backgroundView setFrame:self.view.frame];
     }
     [self._backgroundView setBackgroundColor:[UIColor clearColor]];
@@ -165,10 +184,13 @@ static NSInteger krBrowseButtonTag  = 1801;
 
 -(void)_setupDragView
 {
-    if( !_dragView ){
+    if( !_dragView )
+    {
         _dragView = [[UIView alloc] init];
     }
-    if( self.view ){
+    
+    if( self.view )
+    {
         [self._dragView setFrame:self.view.frame];
     }
     /*
@@ -194,23 +216,27 @@ static NSInteger krBrowseButtonTag  = 1801;
      */
     //修正誤差
     CGFloat _xOffset = 0.0f;
-    if( self._gestureView.center.x != self._orignalPoints.x ){
+    if( self._gestureView.center.x != self._orignalPoints.x )
+    {
         _xOffset = self._gestureView.center.x - self._orignalPoints.x;
     }
     self._matchPoints = CGPointMake(self._orignalPoints.x + _xOffset, self._orignalPoints.y);
 }
 
--(void)_allocPanGesture{
+-(void)_allocPanGesture
+{
     if( _panGestureRecognizer ) return;
     _panGestureRecognizer = [[UIPanGestureRecognizer alloc] initWithTarget:self
                                                                     action:@selector(_handleDrag:)];
 }
 
--(void)_addViewDragGesture{
+-(void)_addViewDragGesture
+{
     [self._gestureView addGestureRecognizer:self._panGestureRecognizer];
 }
 
--(void)_removeViewDragGesture{
+-(void)_removeViewDragGesture
+{
     [self._gestureView removeGestureRecognizer:self._panGestureRecognizer];
 }
 
@@ -230,9 +256,13 @@ static NSInteger krBrowseButtonTag  = 1801;
 
 -(CGFloat)_dragDisapperInstance
 {
-    CGFloat _screenHeight = self._gestureView.frame.size.height;
+    CGFloat _screenHeight     = self._gestureView.frame.size.height;
+    
+    NSLog(@"_screenHeight : %f", _screenHeight);
+    
     CGFloat _disapperInstance = 0.0f;
-    switch ( self.dragDisapperMode ) {
+    switch ( self.dragDisapperMode )
+    {
         case krImageViewerDisapperAfterMiddle:
             _disapperInstance = _screenHeight / 2;
             break;
@@ -282,41 +312,52 @@ static NSInteger krBrowseButtonTag  = 1801;
     //  NSLog(@"center.x : %f", center.x);
     //  NSLog(@"trans.x : %f\n\n", translation.x);
     
-    switch (self.dragMode) {
+    switch (self.dragMode)
+    {
         case krImageViewerModeOfTopToBottom:
             /*
              * 只允許往下移動
              */
             if( translation.y < 0 && viewCenter.y <= 0 ) return;
             //拖拉移動
-            if (_panGesture.state == UIGestureRecognizerStateChanged) {
-                if( center.x == self._matchPoints.x ){
+            if (_panGesture.state == UIGestureRecognizerStateChanged)
+            {
+                if( center.x == self._matchPoints.x )
+                {
                     center = CGPointMake(self._matchPoints.x, center.y + translation.y);
                     _panGesture.view.center = center;
                     [_panGesture setTranslation:CGPointZero inView:_panGesture.view];
                     [self _hideDoneButton];
                     //代表沒移動
-                    if( center.y == self._matchPoints.y ){
+                    if( center.y == self._matchPoints.y )
+                    {
                         [self _appearStatus:NO];
-                    }else{
+                    }
+                    else
+                    {
                         [self _appearStatus:YES];
                     }
                     [self _resetBackgroundViewAlpha];
                 }
             }
+            
             //結束觸碰
-            if(_panGesture.state == UIGestureRecognizerStateEnded){
+            if(_panGesture.state == UIGestureRecognizerStateEnded)
+            {
                 CGFloat _screenHeight = self._gestureView.frame.size.height;
                 CGFloat _moveDistance = _screenHeight - self.sideInstance;
                 [self _appearStatus:NO];
                 [self _displayDoneButton];
                 //檢查 X 是否已過中線
-                if( viewCenter.y > [self _dragDisapperInstance] ){
+                if( viewCenter.y > [self _dragDisapperInstance] )
+                {
                     //打開
                     [self _moveView:self._gestureView toX:0.0f toY:_moveDistance];
                     //關閉 Viewer
                     [self stop];
-                }else{
+                }
+                else
+                {
                     //回到原點
                     [self _moveView:self._gestureView toX:0.0f toY:0.0f];
                 }
@@ -328,16 +369,21 @@ static NSInteger krBrowseButtonTag  = 1801;
              */
             if( translation.y > 0 && viewCenter.y >= 0 ) return;
             //拖拉移動
-            if (_panGesture.state == UIGestureRecognizerStateChanged) {
-                if( center.x == self._matchPoints.x ){
+            if (_panGesture.state == UIGestureRecognizerStateChanged)
+            {
+                if( center.x == self._matchPoints.x )
+                {
                     center = CGPointMake(self._matchPoints.x, center.y + translation.y);
                     _panGesture.view.center = center;
                     [_panGesture setTranslation:CGPointZero inView:_panGesture.view];
                     [self _hideDoneButton];
                     //代表沒移動
-                    if( center.y == self._matchPoints.y ){
+                    if( center.y == self._matchPoints.y )
+                    {
                         [self _appearStatus:NO];
-                    }else{
+                    }
+                    else
+                    {
                         [self _appearStatus:YES];
                     }
                     [self _resetBackgroundViewAlpha];
@@ -345,15 +391,19 @@ static NSInteger krBrowseButtonTag  = 1801;
             }
             
             //結束觸碰
-            if(_panGesture.state == UIGestureRecognizerStateEnded){
+            if(_panGesture.state == UIGestureRecognizerStateEnded)
+            {
                 CGFloat _screenHeight = self._gestureView.frame.size.height;
                 CGFloat _moveDistance = -(_screenHeight - self.sideInstance);
                 [self _appearStatus:NO];
                 [self _displayDoneButton];
                 //Open
-                if( viewCenter.y < -( [self _dragDisapperInstance] ) ){
+                if( viewCenter.y < -( [self _dragDisapperInstance] ) )
+                {
                     [self _moveView:self._gestureView toX:0.0f toY:_moveDistance];
-                }else{
+                }
+                else
+                {
                     //Close
                     [self _moveView:self._gestureView toX:0.0f toY:0.0f];
                 }
@@ -361,28 +411,37 @@ static NSInteger krBrowseButtonTag  = 1801;
             break;
         case krImageViewerModeOfBoth:
             //上下都能拖拉 ( 待修改 Code )
-            if (_panGesture.state == UIGestureRecognizerStateChanged) {
+            if (_panGesture.state == UIGestureRecognizerStateChanged)
+            {
                 //if( center.x == self._matchPoints.x ){
                 center = CGPointMake(self._matchPoints.x, center.y + translation.y);
                 _panGesture.view.center = center;
                 [_panGesture setTranslation:CGPointZero inView:_panGesture.view];
                 [self _hideDoneButton];
-                if( center.y == self._matchPoints.y ){
+                if( center.y == self._matchPoints.y )
+                {
                     [self _appearStatus:NO];
-                }else{
+                }
+                else
+                {
                     [self _appearStatus:YES];
                 }
                 [self _resetBackgroundViewAlpha];
                 //}
             }
-            if(_panGesture.state == UIGestureRecognizerStateEnded){
+            
+            if(_panGesture.state == UIGestureRecognizerStateEnded)
+            {
                 CGFloat _screenHeight = self._gestureView.frame.size.height;
                 CGFloat _moveDistance = -(_screenHeight - self.sideInstance);
                 [self _appearStatus:NO];
                 [self _displayDoneButton];
-                if( viewCenter.y < -( [self _dragDisapperInstance] ) ){
+                if( viewCenter.y < -( [self _dragDisapperInstance] ) )
+                {
                     [self _moveView:self._gestureView toX:0.0f toY:_moveDistance];
-                }else{
+                }
+                else
+                {
                     [self _moveView:self._gestureView toX:0.0f toY:0.0f];
                 }
             }
@@ -494,7 +553,8 @@ static NSInteger krBrowseButtonTag  = 1801;
 -(void)_setupScrollView
 {
     CGRect _frame = self.view.frame;
-    if( !_scrollView ){
+    if( !_scrollView )
+    {
         //_frame.size.height = 400.0f;
         _scrollView = [[UIScrollView alloc] init];
     }
@@ -506,10 +566,10 @@ static NSInteger krBrowseButtonTag  = 1801;
     //Scale
     //CGFloat _maxScaleSize = 2.0f;
     self._scrollView.contentMode      = UIViewContentModeCenter;
-    //    self._scrollView.maximumZoomScale = 2.0f;
-    //    self._scrollView.minimumZoomScale = 1.0f;
-    //    self._scrollView.zoomScale        = _maxScaleSize;
-    //    self._scrollView.clipsToBounds    = YES;
+    //self._scrollView.maximumZoomScale = 2.0f;
+    //self._scrollView.minimumZoomScale = 1.0f;
+    //self._scrollView.zoomScale        = _maxScaleSize;
+    //self._scrollView.clipsToBounds    = YES;
     self._scrollView.delegate         = self;
     self._scrollView.backgroundColor  = [UIColor clearColor];
 }
@@ -555,7 +615,8 @@ static NSInteger krBrowseButtonTag  = 1801;
     }
 }
 
--(void)_removeBrowser:(id)sender{
+-(void)_removeBrowser:(id)sender
+{
     //[[(UIButton *)sender superview] removeFromSuperview];
     //[self _appearStatus:YES];
     //[self _removeAllViews];
@@ -565,8 +626,10 @@ static NSInteger krBrowseButtonTag  = 1801;
 -(void)_removeAllViews
 {
     //Remove ImageView's images to release memories.
-    for( UIView *_subview in self._backgroundView.subviews ){
-        if( [_subview isKindOfClass:[UIImageView class]] ){
+    for( UIView *_subview in self._backgroundView.subviews )
+    {
+        if( [_subview isKindOfClass:[UIImageView class]] )
+        {
             UIImageView *_imageView = (UIImageView *)_subview;
             _imageView.image = nil;
             [_imageView removeFromSuperview];
@@ -583,37 +646,35 @@ static NSInteger krBrowseButtonTag  = 1801;
     return [UIApplication sharedApplication].statusBarFrame.size.height;
 }
 
-//
 -(void)_startLoadingWithView:(UIView *)_targetView needCancelButton:(BOOL)_needCancelButton
 {
-    dispatch_async(dispatch_get_main_queue(), ^(void)
-                   {
-                       if( [_targetView viewWithTag:krLoadingViewTag] )
-                       {
-                           return;
-                       }
-                       //UIView *_targetView = self.view;
-                       CGRect _frame = CGRectMake(0.0f, 0.0f, _targetView.frame.size.width, _targetView.frame.size.height);
-                       //
-                       UIView *_loadingBackgroundView = [[UIView alloc] initWithFrame:_frame];
-                       [_loadingBackgroundView setTag:krLoadingViewTag];
-                       [_loadingBackgroundView setBackgroundColor:[UIColor blackColor]];
-                       [_loadingBackgroundView setAlpha:0.5];
-                       [_targetView addSubview:_loadingBackgroundView];
-                       //
-                       if( _needCancelButton )
-                       {
-                           [_targetView addSubview:[self _cancelDownloadingButtonWithSuperFrame:_frame]];
-                       }
-                       //
-                       UIActivityIndicatorView *_loadingIndicator = [[UIActivityIndicatorView alloc]
-                                                                     initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleWhiteLarge];
-                       _loadingIndicator.center = CGPointMake(_targetView.bounds.size.width / 2.0f,
-                                                              _targetView.bounds.size.height / 2.0f);
-                       [_loadingIndicator setColor:[UIColor whiteColor]];
-                       [_loadingIndicator startAnimating];
-                       [_targetView addSubview:_loadingIndicator];
-                   });
+    dispatch_async(dispatch_get_main_queue(), ^(void){
+       if( [_targetView viewWithTag:krLoadingViewTag] )
+       {
+           return;
+       }
+       //UIView *_targetView = self.view;
+       CGRect _frame = CGRectMake(0.0f, 0.0f, _targetView.frame.size.width, _targetView.frame.size.height);
+       //
+       UIView *_loadingBackgroundView = [[UIView alloc] initWithFrame:_frame];
+       [_loadingBackgroundView setTag:krLoadingViewTag];
+       [_loadingBackgroundView setBackgroundColor:[UIColor blackColor]];
+       [_loadingBackgroundView setAlpha:0.5];
+       [_targetView addSubview:_loadingBackgroundView];
+       //
+       if( _needCancelButton )
+       {
+           [_targetView addSubview:[self _cancelDownloadingButtonWithSuperFrame:_frame]];
+       }
+       //
+       UIActivityIndicatorView *_loadingIndicator = [[UIActivityIndicatorView alloc]
+                                                     initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleWhiteLarge];
+       _loadingIndicator.center = CGPointMake(_targetView.bounds.size.width / 2.0f,
+                                              _targetView.bounds.size.height / 2.0f);
+       [_loadingIndicator setColor:[UIColor whiteColor]];
+       [_loadingIndicator startAnimating];
+       [_targetView addSubview:_loadingIndicator];
+    });
 }
 
 -(void)_startLoadingWithView:(UIView *)_targetView
@@ -625,9 +686,12 @@ static NSInteger krBrowseButtonTag  = 1801;
 {
     dispatch_async(dispatch_get_main_queue(), ^(void) {
         //UIView *_targetView = self.view;
-        if( _targetView ){
-            for(UIView *subview in [_targetView subviews]) {
-                if([subview isKindOfClass:[UIActivityIndicatorView class]]) {
+        if( _targetView )
+        {
+            for(UIView *subview in [_targetView subviews])
+            {
+                if([subview isKindOfClass:[UIActivityIndicatorView class]])
+                {
                     [(UIActivityIndicatorView *)subview stopAnimating];
                     [subview removeFromSuperview];
                     break;
@@ -671,8 +735,10 @@ static NSInteger krBrowseButtonTag  = 1801;
 -(void)_appearStatus:(BOOL)_isAppear{
     //if( !self.statusBarHidden ) return;
     UIWindow *_mainWindow = [[UIApplication sharedApplication] keyWindow];
-    if( !_isAppear ){
-        if( _mainWindow ){
+    if( !_isAppear )
+    {
+        if( _mainWindow )
+        {
             UIView *_statusView =[[UIView alloc] initWithFrame:[[UIApplication sharedApplication] statusBarFrame]];
             [_statusView setBackgroundColor:[UIColor clearColor]];
             [_statusView setBackgroundColor:[UIColor blackColor]];
@@ -681,8 +747,11 @@ static NSInteger krBrowseButtonTag  = 1801;
             [_mainWindow sendSubviewToBack:_statusView];
         }
         [[UIApplication sharedApplication] setStatusBarHidden:YES withAnimation:UIStatusBarAnimationSlide];
-    }else{
-        if( [_mainWindow viewWithTag:KR_STATUS_BAR_VIEW_TAG] ){
+    }
+    else
+    {
+        if( [_mainWindow viewWithTag:KR_STATUS_BAR_VIEW_TAG] )
+        {
             [[_mainWindow viewWithTag:KR_STATUS_BAR_VIEW_TAG] removeFromSuperview];
         }
         [[UIApplication sharedApplication] setStatusBarHidden:NO];
@@ -705,7 +774,8 @@ static NSInteger krBrowseButtonTag  = 1801;
 -(void)_scrollToPage:(NSInteger)_toPage
 {
     NSInteger _scrollToIndex = _toPage > 0 ? _toPage - 1 : 0;
-    if( [self._scrollView.subviews count] > 0 ){
+    if( [self._scrollView.subviews count] > 0 )
+    {
         //取出 subviews
         CGRect _scrollToFrame  = [[self._scrollView.subviews objectAtIndex:_scrollToIndex] frame];
         [self._scrollView scrollRectToVisible:_scrollToFrame animated:NO];
@@ -812,7 +882,8 @@ static NSInteger krBrowseButtonTag  = 1801;
 -(UIButton *)_doneBrowserButton
 {
     UIButton *_button = [UIButton buttonWithType:UIButtonTypeCustom];
-    [_button setFrame:CGRectMake(self._dragView.frame.size.width - 60.0f, 20.0f, 60.0f, 28.0f)];
+    //[_button setFrame:CGRectMake(self._dragView.frame.size.width - 60.0f, 20.0f, 60.0f, 28.0f)];
+    [self _resizeDoneButton:_button];
     [_button setTag:krBrowseButtonTag];
     [_button setBackgroundColor:[UIColor clearColor]];
     [_button setBackgroundImage:[self _imageNameNoCache:@"btn_done.png"] forState:UIControlStateNormal];
@@ -826,7 +897,8 @@ static NSInteger krBrowseButtonTag  = 1801;
 -(UIButton *)_cancelDownloadingButtonWithSuperFrame:(CGRect)_superFrame
 {
     UIButton *_closeButton = [UIButton buttonWithType:UIButtonTypeCustom];
-    [_closeButton setFrame:CGRectMake(_superFrame.size.width - 60.0f, [self _statusBarHeight], 60.0f, 28.0f)];
+    //[_closeButton setFrame:CGRectMake(_superFrame.size.width - 60.0f, [self _statusBarHeight], 60.0f, 28.0f)];
+    [self _resizeCancelButton:_closeButton withSuperFrame:_superFrame];
     [_closeButton setTag:krLoadingButtonTag];
     [_closeButton setBackgroundColor:[UIColor clearColor]];
     [_closeButton setBackgroundImage:[self _imageNameNoCache:@"btn_done.png"] forState:UIControlStateNormal];
@@ -971,6 +1043,44 @@ static NSInteger krBrowseButtonTag  = 1801;
     }
 }
 
+#pragma --mark Resize
+-(void)_resizeScrollViewWithFrame:(CGRect)_frame
+{
+    [self._scrollView setFrame:_frame];
+    CGRect _innerFrame = CGRectMake(0.0f,
+                                    0.0f,
+                                    self._scrollView.frame.size.width,
+                                    self._scrollView.frame.size.height);
+    for( KRImageScrollView *_krImageScrollView in self._scrollView.subviews )
+    {
+        [_krImageScrollView resize:_innerFrame];
+        _innerFrame.origin.x += _innerFrame.size.width;
+    }
+    [self._scrollView setContentSize:CGSizeMake(_innerFrame.origin.x, _innerFrame.size.height)];
+    [self _scrollToPage:self.scrollToPage];
+}
+
+-(void)_resizeBackgroundViewWithFrame:(CGRect)_frame andTransform:(CGAffineTransform)_transform
+{
+    self._backgroundView.transform = _transform;
+    self._backgroundView.bounds    = _frame;
+}
+
+-(void)_resizeDragViewWithFrame:(CGRect)_frame
+{
+    [self._dragView setFrame:_frame];
+}
+
+-(void)_resizeDoneButton:(UIButton *)_button
+{
+    [_button setFrame:CGRectMake(self._dragView.frame.size.width - 60.0f, 20.0f, 60.0f, 28.0f)];
+}
+
+-(void)_resizeCancelButton:(UIButton *)_button withSuperFrame:(CGRect)_superFrame
+{
+    [_button setFrame:CGRectMake(_superFrame.size.width - 60.0f, [self _statusBarHeight], 60.0f, 28.0f)];
+}
+
 @end
 
 
@@ -1005,11 +1115,14 @@ static NSInteger krBrowseButtonTag  = 1801;
 @synthesize zoomScale;
 @synthesize clipsToBounds;
 @synthesize timeout;
+@synthesize interfaceOrientation;
 
 
--(id)init{
+-(id)init
+{
     self = [super init];
-    if( self ){
+    if( self )
+    {
         self.view     = nil;
         self.dragMode = krImageViewerModeOfTopToBottom;
         [self _initWithVars];
@@ -1018,9 +1131,11 @@ static NSInteger krBrowseButtonTag  = 1801;
     return self;
 }
 
--(id)initWithParentView:(UIView *)_parentView dragMode:(krImageViewerModes)_dragMode{
+-(id)initWithParentView:(UIView *)_parentView dragMode:(krImageViewerModes)_dragMode
+{
     self = [super init];
-    if( self ){
+    if( self )
+    {
         self.view     = _parentView;
         self.dragMode = _dragMode;
         [self _initWithVars];
@@ -1030,9 +1145,11 @@ static NSInteger krBrowseButtonTag  = 1801;
     return self;
 }
 
--(id)initWithDragMode:(krImageViewerModes)_dragMode{
+-(id)initWithDragMode:(krImageViewerModes)_dragMode
+{
     self = [super init];
-    if( self ){
+    if( self )
+    {
         self.view     = nil;
         self.dragMode = _dragMode;
         [self _initWithVars];
@@ -1042,8 +1159,8 @@ static NSInteger krBrowseButtonTag  = 1801;
     return self;
 }
 
--(void)dealloc{
-    //NSLog(@"KRImageViewer Dealloc");
+-(void)dealloc
+{
     [self._caches removeAllObjects];
     [self _scrollViewRemoveAllSubviews];
 }
@@ -1155,7 +1272,8 @@ static NSInteger krBrowseButtonTag  = 1801;
     self._isCancelled = NO;
     [self._caches removeAllObjects];
     NSInteger _index = 0;
-    for( UIImage *_image in _images ){
+    for( UIImage *_image in _images )
+    {
         [self._caches setObject:_image forKey:[NSString stringWithFormat:@"%i", _index]];
         ++_index;
     }
@@ -1216,7 +1334,63 @@ static NSInteger krBrowseButtonTag  = 1801;
      */
     [self _cancelAllOperations];
     [self _loadImageWithPage:self.scrollToPage];
+}
+
+-(void)reloadImagesWhenRotate:(UIInterfaceOrientation)_toInterfaceOrientation
+{
+    self.interfaceOrientation = _toInterfaceOrientation;
+    /*
+     * @ 設計想法
+     *   - 要旋轉的是除了 self.view 以外的所有 View ( UIView, UIScrollView, UIImageView, UIButton )，
+     *     並且所有的 View frame 都要重新計算( resize )與排定座標( repoints )位置。
+     */
+    CGRect _frame   = self.view.frame;
+    CGFloat _width  = _frame.size.width;
+    CGFloat _height = _frame.size.height;
+    CGAffineTransform transform = CGAffineTransformMakeRotation(M_PI_2);
+    switch ( _toInterfaceOrientation )
+    {
+        case UIInterfaceOrientationPortrait:
+            //NSLog(@"轉成直立");
+            //轉成直立
+            _frame.size.width  = _width;
+            _frame.size.height = _height;
+            transform = CGAffineTransformMakeRotation(M_PI * 2);
+            break;
+        case UIInterfaceOrientationPortraitUpsideDown:
+            //NSLog(@"轉成倒立");
+            //轉成倒立
+            _frame.size.width  = _width;
+            _frame.size.height = _height;
+            transform = CGAffineTransformMakeRotation(M_PI);
+            break;
+        case UIInterfaceOrientationLandscapeLeft:
+            //NSLog(@"轉成左橫向");
+            //轉成左橫向 ( Home 鍵在左 )
+            _frame.size.width  = _height;
+            _frame.size.height = _width;
+            transform = CGAffineTransformMakeRotation(3.0 * M_PI / 2.0);
+            break;
+        case UIInterfaceOrientationLandscapeRight:
+            //NSLog(@"轉右橫向");
+            //轉成右橫向 ( Home 鍵在右 )
+            _frame.size.width  = _height;
+            _frame.size.height = _width;
+            transform = CGAffineTransformMakeRotation(M_PI_2);
+            break;
+        default:
+            
+            break;
+    }
+    [self _resizeBackgroundViewWithFrame:_frame andTransform:transform];
+    [self _resizeDragViewWithFrame:_frame];
+    [self _resizeScrollViewWithFrame:_frame];
+    [self _resetGestureView];
+    [self _resizeDoneButton:(UIButton *)[self._dragView viewWithTag:krBrowseButtonTag]];
+    [self _resizeCancelButton:(UIButton *)[self.view viewWithTag:krLoadingButtonTag] withSuperFrame:_frame];
     
+    //NSLog(@"_frame : %f, %f, %f, %f", _frame.origin.x, _frame.origin.y, _frame.size.width, _frame.size.height);
+    //NSLog(@"%f, %f", self._backgroundView.frame.size.width, self._backgroundView.frame.size.height);
 }
 
 #pragma UIScrollView Delegate

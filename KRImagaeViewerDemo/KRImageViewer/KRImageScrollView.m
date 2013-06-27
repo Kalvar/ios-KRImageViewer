@@ -9,7 +9,8 @@
 
 #import "KRImageScrollView.h"
 
-@interface KRImageScrollView(){
+@interface KRImageScrollView()
+{
     UIImageView *_imageView;
 }
 
@@ -29,7 +30,8 @@
 
 @implementation KRImageScrollView (fixPrivate)
 
--(void)_initWithSettings{
+-(void)_initWithSettings
+{
     //Default Settings
     self.delegate         = self;
     self.backgroundColor  = [UIColor clearColor];
@@ -83,7 +85,8 @@
 
 -(id)init{
     self = [super init];
-    if( self ){
+    if( self )
+    {
         [self _initWithSettings];
     }
     return self;
@@ -92,44 +95,47 @@
 - (id)initWithFrame:(CGRect)frame
 {
     self = [super initWithFrame:frame];
-    if (self) {
+    if (self)
+    {
         [self _initWithSettings];
         [self _addGestures];
     }
     return self;
 }
 
-/*
- // Only override drawRect: if you perform custom drawing.
- // An empty implementation adversely affects performance during animation.
- - (void)drawRect:(CGRect)rect
- {
- // Drawing code
- }
- */
-
--(void)dealloc{
-    //NSLog(@"KRImageScrollView Dealloc");
+-(void)dealloc
+{
     self._imageView.image = nil;
 }
 
 #pragma My Methods
+-(void)resizeImageView
+{
+    [self._imageView setFrame:CGRectMake(0.0f,
+                                         0.0f,
+                                         self.frame.size.width,
+                                         self.frame.size.height)];
+}
+
+-(void)resize:(CGRect)_frame
+{
+    [self setFrame:_frame];
+    [self resizeImageView];
+}
+
 -(void)displayImage:(UIImage *)_subImage
 {
-    if( _imageView ){
+    if( _imageView )
+    {
         [_imageView removeFromSuperview];
         self._imageView.image = nil;
         self._imageView       = nil;
     }
     _imageView = [[UIImageView alloc] initWithImage:_subImage];
-    self._imageView.contentMode = UIViewContentModeScaleAspectFit; //UIViewContentModeScaleToFill;
-    [self._imageView setFrame:CGRectMake(0.0f,
-                                         0.0f,
-                                         self.frame.size.width,
-                                         self.frame.size.height)];
+    self._imageView.contentMode = UIViewContentModeScaleAspectFit; //UIViewContentModeScaleAspectFill; //UIViewContentModeScaleToFill;
+    [self resizeImageView];
     [self addSubview:self._imageView];
 }
-
 
 //#error 這裡會一直被 reset ... 要想個方法增進效能
 -(void)resetImage:(UIImage *)_subImage
@@ -144,8 +150,10 @@
     if( gestureRecognizer.state == UIGestureRecognizerStateEnded )
     {
         UIWindow *_mainWindow = [[UIApplication sharedApplication] keyWindow];
-        if( self._hideStatusBar ){
-            if( _mainWindow ){
+        if( self._hideStatusBar )
+        {
+            if( _mainWindow )
+            {
                 UIView *_statusView =[[UIView alloc] initWithFrame:[[UIApplication sharedApplication] statusBarFrame]];
                 [_statusView setBackgroundColor:[UIColor clearColor]];
                 [_statusView setBackgroundColor:[UIColor redColor]];
@@ -153,8 +161,11 @@
                 [_mainWindow addSubview:_statusView];
                 [_mainWindow sendSubviewToBack:_statusView];
             }
-        }else{
-            if( [_mainWindow viewWithTag:KR_STATUS_BAR_VIEW_TAG] ){
+        }
+        else
+        {
+            if( [_mainWindow viewWithTag:KR_STATUS_BAR_VIEW_TAG] )
+            {
                 [[_mainWindow viewWithTag:KR_STATUS_BAR_VIEW_TAG] removeFromSuperview];
             }
         }
@@ -184,15 +195,18 @@
 //}
 
 #pragma UIScrollView Delegate
--(void)scrollViewWillBeginZooming:(UIScrollView *)scrollView withView:(UIView *)_subview{
+-(void)scrollViewWillBeginZooming:(UIScrollView *)scrollView withView:(UIView *)_subview
+{
     self.pagingEnabled = NO;
 }
 
--(UIView *)viewForZoomingInScrollView:(UIScrollView *)scrollView{
+-(UIView *)viewForZoomingInScrollView:(UIScrollView *)scrollView
+{
     return self._imageView;
 }
 
--(void)scrollViewDidEndZooming:(UIScrollView *)scrollView withView:(UIView *)_subview atScale:(float)scale{
+-(void)scrollViewDidEndZooming:(UIScrollView *)scrollView withView:(UIView *)_subview atScale:(float)scale
+{
     [scrollView setZoomScale:scale+0.01f animated:NO];
     [scrollView setZoomScale:scale animated:NO];
 }
