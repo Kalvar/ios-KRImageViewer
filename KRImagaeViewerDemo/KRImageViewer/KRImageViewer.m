@@ -411,6 +411,7 @@ static NSInteger _krImageViewerActivityIndicatorTag      = 1802;
             }
             break;
         case krImageViewerModeOfBoth:
+//#error 這裡還無法動作 ... 待修
             //上下都能拖拉 ( 待修改 Code )
             if (_panGesture.state == UIGestureRecognizerStateChanged)
             {

@@ -129,7 +129,7 @@ KRImageViewer is available under the MIT license ( or Whatever you wanna do ). S
 
 ## Updated Logs
 
-V0.9 added a function to fit rotations.
+V0.9 added a function to fit rotations. <br />
 V0.9.1 fixed bugs.
 
 ## Others
