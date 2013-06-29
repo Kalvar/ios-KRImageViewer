@@ -1,6 +1,6 @@
 //
 //  KRImageViewer.h
-//
+//  V0.9.1
 //  ilovekalvar@gmail.com
 //
 //  Created by Kuo-Ming Lin on 2012/11/07.

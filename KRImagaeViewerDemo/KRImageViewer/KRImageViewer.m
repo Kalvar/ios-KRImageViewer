@@ -1,6 +1,6 @@
 //
 //  KRImageViewer.m
-//
+//  V0.9.1
 //  ilovekalvar@gmail.com
 //
 //  Created by Kuo-Ming Lin on 2012/11/07.
@@ -14,9 +14,10 @@
 
 
 static CGFloat _backgroundViewBlackColor = 0.0f;
-static NSInteger krLoadingViewTag   = 1799;
-static NSInteger krLoadingButtonTag = 1800;
-static NSInteger krBrowseButtonTag  = 1801;
+static NSInteger _krImageViewerActivityBackgroundViewTag = 1799;
+static NSInteger _krImageViewerCancelButtonTag           = 1800;
+static NSInteger _krImageViewerBrowsingButtonTag         = 1801;
+static NSInteger _krImageViewerActivityIndicatorTag      = 1802;
 
 @interface KRImageViewer ()
 {
@@ -78,6 +79,7 @@ static NSInteger krBrowseButtonTag  = 1801;
 -(void)_removeAllViews;
 //
 -(CGFloat)_statusBarHeight;
+-(void)_resetIndicator:(UIActivityIndicatorView *)_indicator withFrame:(CGRect)_frame;
 -(void)_startLoadingWithView:(UIView *)_targetView needCancelButton:(BOOL)_needCancelButton;
 -(void)_startLoadingWithView:(UIView *)_targetView;
 -(void)_stopLoadingWithView:(UIView *)_targetView;
@@ -111,6 +113,7 @@ static NSInteger krBrowseButtonTag  = 1801;
 -(void)_resizeDragViewWithFrame:(CGRect)_frame;
 -(void)_resizeDoneButton:(UIButton *)_button;
 -(void)_resizeCancelButton:(UIButton *)_button withSuperFrame:(CGRect)_superFrame;
+-(void)_resetIndicatorWithSuperFrame:(CGRect)_superFrame;
 
 
 @end
@@ -257,9 +260,6 @@ static NSInteger krBrowseButtonTag  = 1801;
 -(CGFloat)_dragDisapperInstance
 {
     CGFloat _screenHeight     = self._gestureView.frame.size.height;
-    
-    NSLog(@"_screenHeight : %f", _screenHeight);
-    
     CGFloat _disapperInstance = 0.0f;
     switch ( self.dragDisapperMode )
     {
@@ -278,17 +278,18 @@ static NSInteger krBrowseButtonTag  = 1801;
         default:
             break;
     }
+    //NSLog(@"_screenHeight : %f", _screenHeight);
     return _disapperInstance;
 }
 
 -(void)_hideDoneButton
 {
-    [(UIButton *)[self._dragView viewWithTag:krBrowseButtonTag] setHidden:YES];
+    [(UIButton *)[self._dragView viewWithTag:_krImageViewerBrowsingButtonTag] setHidden:YES];
 }
 
 -(void)_displayDoneButton
 {
-    [(UIButton *)[self._dragView viewWithTag:krBrowseButtonTag] setHidden:NO];
+    [(UIButton *)[self._dragView viewWithTag:_krImageViewerBrowsingButtonTag] setHidden:NO];
 }
 
 /*
@@ -452,16 +453,20 @@ static NSInteger krBrowseButtonTag  = 1801;
     }
 }
 
--(void)_resortKeys{
-    if( [self._caches count] > 0 ){
+-(void)_resortKeys
+{
+    if( [self._caches count] > 0 )
+    {
         NSDictionary *_sortedCaches = [self _sortDictionary:self._caches ascending:YES];
         [self._sortedKeys removeAllObjects];
         [self._sortedKeys addObjectsFromArray:[_sortedCaches objectForKey:@"keys"]];
     }
 }
 
--(void)_cancelAllOperations{
-    if( self._operationQueues.operationCount > 0 ){
+-(void)_cancelAllOperations
+{
+    if( self._operationQueues.operationCount > 0 )
+    {
         //self._isCancelled = YES;
         [self._operationQueues cancelAllOperations];
     }
@@ -476,13 +481,17 @@ static NSInteger krBrowseButtonTag  = 1801;
     [self _startLoadingOnMainView];
     //[self._caches removeAllObjects];
     NSInteger _total = [_urlInfos count];
-    if( _total > 0 ){
+    if( _total > 0 )
+    {
         NSInteger _count = 0;
-        for( NSString *_imageKey in _urlInfos ){
+        for( NSString *_imageKey in _urlInfos )
+        {
             ++_count;
             //如果有快取就不理會
-            if( [self._caches objectForKey:_imageKey] ){
-                if( _total == _count ){
+            if( [self._caches objectForKey:_imageKey] )
+            {
+                if( _total == _count )
+                {
                     [self _resortKeys];
                     [self start];
                     [self _stopLoadingOnMainView];
@@ -499,15 +508,18 @@ static NSInteger krBrowseButtonTag  = 1801;
             //使用 ^Block (設定完成時候的動作)
             [_operation setCompletionBlock:^{
                 //寫入快取
-                if( _operation.doneImage ){
+                if( _operation.doneImage )
+                {
                     [self._caches setObject:_operation.doneImage forKey:_imageKey];
                     _operation.doneImage = nil;
                 }
                 //全處理完了 + 是最後一筆
-                if( _operationQueues.operationCount == 0 && _total == _count ){
+                if( _operationQueues.operationCount == 0 && _total == _count )
+                {
                     //NSLog(@"isCancelled : %i", self._isCancelled);
                     //NSLog(@"wow : operationCount, total, count : %i, %i, %i", self._operationQueues.operationCount, _total, _count);
-                    if( !self._isCancelled ){
+                    if( !self._isCancelled )
+                    {
                         [self _resortKeys];
                         [self start];
                         [self _stopLoadingOnMainView];
@@ -517,7 +529,9 @@ static NSInteger krBrowseButtonTag  = 1801;
             //寫入排程
             [_operationQueues addOperation:_operation];
         }
-    }else{
+    }
+    else
+    {
         [self _stopLoadingOnMainView];
     }
 }
@@ -599,19 +613,18 @@ static NSInteger krBrowseButtonTag  = 1801;
     [self._scrollView setContentSize:CGSizeMake(_innerFrame.origin.x, _innerFrame.size.height)];
 }
 
-/*
- * Test functions ( 待修正 )
- */
 -(void)_browseImages
 {
     if( [self._caches count] > 0 )
     {
         [self _setupImagesInScrollView];
         [self _scrollToPage:self.scrollToPage];
-        [self._dragView addSubview:self._scrollView];
-        [self._dragView addSubview:[self _doneBrowserButton]];
-        [self._backgroundView addSubview:self._dragView];
-        [self.view addSubview:self._backgroundView];
+        dispatch_async(dispatch_get_main_queue(), ^(void){
+            [self._dragView addSubview:self._scrollView];
+            [self._dragView addSubview:[self _doneBrowserButton]];
+            [self._backgroundView addSubview:self._dragView];
+            [self.view addSubview:self._backgroundView];
+        });
     }
 }
 
@@ -635,7 +648,14 @@ static NSInteger krBrowseButtonTag  = 1801;
             [_imageView removeFromSuperview];
         }
     }
-    [[self._dragView viewWithTag:krBrowseButtonTag] removeFromSuperview];
+    if( [self._dragView viewWithTag:_krImageViewerBrowsingButtonTag] )
+    {
+        [[self._dragView viewWithTag:_krImageViewerBrowsingButtonTag] removeFromSuperview];
+    }
+    if( [self._dragView viewWithTag:_krImageViewerCancelButtonTag] )
+    {
+        [[self._dragView viewWithTag:_krImageViewerCancelButtonTag] removeFromSuperview];
+    }
     [self._backgroundView removeFromSuperview];
     [self._dragView removeFromSuperview];
     //[self.view removeFromSuperview];
@@ -646,34 +666,46 @@ static NSInteger krBrowseButtonTag  = 1801;
     return [UIApplication sharedApplication].statusBarFrame.size.height;
 }
 
+-(void)_resetIndicator:(UIActivityIndicatorView *)_indicator withFrame:(CGRect)_frame
+{
+    _indicator.center = CGPointMake(_frame.size.width / 2.0f,
+                                    _frame.size.height / 2.0f);
+}
+
 -(void)_startLoadingWithView:(UIView *)_targetView needCancelButton:(BOOL)_needCancelButton
 {
+    /*
+     *  @ 非 PageByPage Loading 模式
+     *    - 使用 _krImageViewerActivityBackgroundViewTag 當成 ActivityIndicator 底下的背景 View Tag，
+     *      之後就能使用該 Tag 取出要移除的 ActivityIndicator。
+     */
     dispatch_async(dispatch_get_main_queue(), ^(void){
-       if( [_targetView viewWithTag:krLoadingViewTag] )
-       {
+        if( [_targetView viewWithTag:_krImageViewerActivityBackgroundViewTag] )
+        {
            return;
-       }
-       //UIView *_targetView = self.view;
-       CGRect _frame = CGRectMake(0.0f, 0.0f, _targetView.frame.size.width, _targetView.frame.size.height);
-       //
-       UIView *_loadingBackgroundView = [[UIView alloc] initWithFrame:_frame];
-       [_loadingBackgroundView setTag:krLoadingViewTag];
-       [_loadingBackgroundView setBackgroundColor:[UIColor blackColor]];
-       [_loadingBackgroundView setAlpha:0.5];
-       [_targetView addSubview:_loadingBackgroundView];
-       //
-       if( _needCancelButton )
-       {
+        }
+        //UIView *_targetView = self.view;
+        CGRect _frame = CGRectMake(0.0f, 0.0f, _targetView.frame.size.width, _targetView.frame.size.height);
+        //
+        UIView *_loadingBackgroundView = [[UIView alloc] initWithFrame:_frame];
+        [_loadingBackgroundView setTag:_krImageViewerActivityBackgroundViewTag];
+        [_loadingBackgroundView setBackgroundColor:[UIColor blackColor]];
+        [_loadingBackgroundView setAlpha:0.5];
+        [_targetView addSubview:_loadingBackgroundView];
+        //
+        if( _needCancelButton )
+        {
            [_targetView addSubview:[self _cancelDownloadingButtonWithSuperFrame:_frame]];
-       }
-       //
-       UIActivityIndicatorView *_loadingIndicator = [[UIActivityIndicatorView alloc]
+        }
+        //
+        UIActivityIndicatorView *_loadingIndicator = [[UIActivityIndicatorView alloc]
                                                      initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleWhiteLarge];
-       _loadingIndicator.center = CGPointMake(_targetView.bounds.size.width / 2.0f,
-                                              _targetView.bounds.size.height / 2.0f);
-       [_loadingIndicator setColor:[UIColor whiteColor]];
-       [_loadingIndicator startAnimating];
-       [_targetView addSubview:_loadingIndicator];
+        [_loadingIndicator setTag:_krImageViewerActivityIndicatorTag];
+        //_loadingIndicator.center = CGPointMake(_targetView.bounds.size.width / 2.0f, _targetView.bounds.size.height / 2.0f);
+        [self _resetIndicator:_loadingIndicator withFrame:_targetView.bounds];
+        [_loadingIndicator setColor:[UIColor whiteColor]];
+        [_loadingIndicator startAnimating];
+        [_targetView addSubview:_loadingIndicator];
     });
 }
 
@@ -698,8 +730,10 @@ static NSInteger krBrowseButtonTag  = 1801;
                 }
             }
         }
-        [[_targetView viewWithTag:krLoadingButtonTag] removeFromSuperview];
-        [[_targetView viewWithTag:krLoadingViewTag] removeFromSuperview];
+        //移除 Cancel Button
+        [[_targetView viewWithTag:_krImageViewerCancelButtonTag] removeFromSuperview];
+        //移除 ActivityIndicator 相關的 View
+        [[_targetView viewWithTag:_krImageViewerActivityBackgroundViewTag] removeFromSuperview];
     });
 }
 
@@ -715,16 +749,21 @@ static NSInteger krBrowseButtonTag  = 1801;
 
 -(void)_startLoadingOnKRImageScrollView:(KRImageScrollView *)_targetView
 {
+    /*
+     *  @ 是 PageByPage Loading 的模式
+     *    - 就會直接針對 ActivityIndicator 設定 Tag，
+     *      之後再直接針對 KRImageScrollView 取出該 Tag 後移除 ActivityIndicator。
+     */
     dispatch_async(dispatch_get_main_queue(), ^(void){
-        if( [_targetView viewWithTag:krLoadingViewTag] )
+        if( [_targetView viewWithTag:_krImageViewerActivityBackgroundViewTag] )
         {
             return;
         }
         UIActivityIndicatorView *_loadingIndicator = [[UIActivityIndicatorView alloc]
                                                       initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleWhiteLarge];
-        [_loadingIndicator setTag:krLoadingViewTag];
-        _loadingIndicator.center = CGPointMake(_targetView.bounds.size.width / 2.0f,
-                                               _targetView.bounds.size.height / 2.0f);
+        [_loadingIndicator setTag:_krImageViewerActivityBackgroundViewTag];
+        //_loadingIndicator.center = CGPointMake(_targetView.bounds.size.width / 2.0f, _targetView.bounds.size.height / 2.0f);
+        [self _resetIndicator:_loadingIndicator withFrame:_targetView.bounds];
         [_loadingIndicator setColor:[UIColor whiteColor]];
         [_loadingIndicator startAnimating];
         [_targetView addSubview:_loadingIndicator];
@@ -732,7 +771,8 @@ static NSInteger krBrowseButtonTag  = 1801;
 }
 
 //隱藏或顯示狀態列
--(void)_appearStatus:(BOOL)_isAppear{
+-(void)_appearStatus:(BOOL)_isAppear
+{
     //if( !self.statusBarHidden ) return;
     UIWindow *_mainWindow = [[UIApplication sharedApplication] keyWindow];
     if( !_isAppear )
@@ -797,21 +837,26 @@ static NSInteger krBrowseButtonTag  = 1801;
     NSString *_keyName   = @"keys";
     NSString *_valueName = @"values";
     NSMutableDictionary *_temps = [NSMutableDictionary dictionaryWithCapacity:0];
-    if( [_formatedDatas count] > 0 ){
+    if( [_formatedDatas count] > 0 )
+    {
         NSMutableArray *_keys   = [[NSMutableArray alloc] initWithCapacity:0];
         NSMutableArray *_values = [[NSMutableArray alloc] initWithCapacity:0];
         //針對 Key 先做 ASC 排序
         NSMutableArray *_tempSorts = [NSMutableArray arrayWithCapacity:0];
         //要排序比對的儲存 Key
         NSString *_sortKey = @"id";
-        for( NSString *_key in _formatedDatas ){
+        for( NSString *_key in _formatedDatas )
+        {
             //字串轉 Integer，非數字會回傳 0
             //NSInteger _keyOfInt = [_key integerValue];
             NSMutableDictionary *_sorts = [[NSMutableDictionary alloc] initWithCapacity:0];
             //如果 _key 是數字型態，就轉化成 NSNumber 物件儲存
-            if( [self _isInt:_key] ){
+            if( [self _isInt:_key] )
+            {
                 [_sorts setObject:[NSNumber numberWithInteger:[_key integerValue]] forKey:_sortKey];
-            }else{
+            }
+            else
+            {
                 [_sorts setObject:_key forKey:_sortKey];
             }
             [_tempSorts addObject:_sorts];
@@ -821,11 +866,13 @@ static NSInteger krBrowseButtonTag  = 1801;
         //依排序排則針對 _tempSorts 做排序的動作
         NSArray *_sorteds = [_tempSorts sortedArrayUsingDescriptors:[NSArray arrayWithObject:_sortDescriptor]];
         //依序取出內容值，放入 Keys 主鍵集合裡
-        for( NSDictionary *_dicts in _sorteds ){
+        for( NSDictionary *_dicts in _sorteds )
+        {
             [_keys addObject:[NSString stringWithFormat:@"%@", [_dicts objectForKey:_sortKey]]];
         }
         //依照排序好的 Keys 主鍵集合再依序取出所屬資料即完成整個排序動作
-        for( NSString *_key in _keys ){
+        for( NSString *_key in _keys )
+        {
             //製作 UIPickerView 的資料
             [_values addObject:[_formatedDatas objectForKey:_key]];
         }
@@ -884,7 +931,7 @@ static NSInteger krBrowseButtonTag  = 1801;
     UIButton *_button = [UIButton buttonWithType:UIButtonTypeCustom];
     //[_button setFrame:CGRectMake(self._dragView.frame.size.width - 60.0f, 20.0f, 60.0f, 28.0f)];
     [self _resizeDoneButton:_button];
-    [_button setTag:krBrowseButtonTag];
+    [_button setTag:_krImageViewerBrowsingButtonTag];
     [_button setBackgroundColor:[UIColor clearColor]];
     [_button setBackgroundImage:[self _imageNameNoCache:@"btn_done.png"] forState:UIControlStateNormal];
     [_button setTitle:@"完成" forState:UIControlStateNormal];
@@ -899,7 +946,7 @@ static NSInteger krBrowseButtonTag  = 1801;
     UIButton *_closeButton = [UIButton buttonWithType:UIButtonTypeCustom];
     //[_closeButton setFrame:CGRectMake(_superFrame.size.width - 60.0f, [self _statusBarHeight], 60.0f, 28.0f)];
     [self _resizeCancelButton:_closeButton withSuperFrame:_superFrame];
-    [_closeButton setTag:krLoadingButtonTag];
+    [_closeButton setTag:_krImageViewerCancelButtonTag];
     [_closeButton setBackgroundColor:[UIColor clearColor]];
     [_closeButton setBackgroundImage:[self _imageNameNoCache:@"btn_done.png"] forState:UIControlStateNormal];
     [_closeButton setTitle:@"取消" forState:UIControlStateNormal];
@@ -920,9 +967,12 @@ static NSInteger krBrowseButtonTag  = 1801;
 -(NSString *)_findImageIndexWithId:(NSString *)_imageId
 {
     NSInteger _index = 0;
-    if( _imageId ){
-        for( NSString *_key in self._sortedKeys ){
-            if( [_key isEqualToString:_imageId] ){
+    if( _imageId )
+    {
+        for( NSString *_key in self._sortedKeys )
+        {
+            if( [_key isEqualToString:_imageId] )
+            {
                 break;
             }
             ++_index;
@@ -967,9 +1017,11 @@ static NSInteger krBrowseButtonTag  = 1801;
             _operation.cacheMode = [self _findOperationCacheMode];
             [_operation setCompletionBlock:^{
                 //寫入快取
-                if( _operation.doneImage ){
+                if( _operation.doneImage )
+                {
                     [self._caches setObject:_operation.doneImage forKey:_imageKey];
-                    if( !self._isCancelled ){
+                    if( !self._isCancelled )
+                    {
                         //顯示在該頁的 Subview 上
                         //NSLog(@"載好 %@ 的圖", _imageKey);
                         dispatch_async(dispatch_get_main_queue(), ^(void) {
@@ -1079,6 +1131,32 @@ static NSInteger krBrowseButtonTag  = 1801;
 -(void)_resizeCancelButton:(UIButton *)_button withSuperFrame:(CGRect)_superFrame
 {
     [_button setFrame:CGRectMake(_superFrame.size.width - 60.0f, [self _statusBarHeight], 60.0f, 28.0f)];
+}
+
+-(void)_resetIndicatorWithSuperFrame:(CGRect)_superFrame
+{
+    //尋找 UIActivityIndicator
+    //是執行 PageByPage 的方法
+    if( self._isOncePageToLoading )
+    {
+        for( KRImageScrollView *_krImageScrollView in self._scrollView.subviews )
+        {
+            UIActivityIndicatorView *_activityIndicator = (UIActivityIndicatorView *)[_krImageScrollView viewWithTag:_krImageViewerActivityBackgroundViewTag];
+            if( _activityIndicator )
+            {
+                [self _resetIndicator:_activityIndicator withFrame:_superFrame];
+            }
+        }
+    }
+    else
+    {
+        //不是 PageByPage 的方法
+        UIActivityIndicatorView *_activityIndicator = (UIActivityIndicatorView *)[self.view viewWithTag:_krImageViewerActivityIndicatorTag];
+        if( _activityIndicator )
+        {
+            [self _resetIndicator:_activityIndicator withFrame:_superFrame];
+        }
+    }
 }
 
 @end
@@ -1229,7 +1307,8 @@ static NSInteger krBrowseButtonTag  = 1801;
 
 -(void)preloadImageURLs:(NSDictionary *)_preloadImages
 {
-    self._isCancelled = NO;
+    self._isOncePageToLoading = NO;
+    self._isCancelled         = NO;
     self._operationQueues.maxConcurrentOperationCount = 1;
     for( NSString *_imageKey in _preloadImages )
     {
@@ -1241,11 +1320,13 @@ static NSInteger krBrowseButtonTag  = 1801;
             _operation.timeout   = self.timeout;
             _operation.cacheMode = [self _findOperationCacheMode];
             [_operation setCompletionBlock:^{
-                if( _operation.doneImage ){
+                if( _operation.doneImage )
+                {
                     [self._caches setObject:_operation.doneImage forKey:_imageKey];
                     _operation.doneImage = nil;
                 }
-                if( _operationQueues.operationCount == 0 ){
+                if( _operationQueues.operationCount == 0 )
+                {
                     [self _resortKeys];
                 }
             }];
@@ -1256,20 +1337,23 @@ static NSInteger krBrowseButtonTag  = 1801;
 
 -(void)browseAnImageURL:(NSString *)_imageURL
 {
-    self._isCancelled = NO;
+    self._isOncePageToLoading = NO;
+    self._isCancelled         = NO;
     [self _downloadImageURLs:[NSDictionary dictionaryWithObject:_imageURL forKey:@"0"]];
 }
 
 -(void)browseImageURLs:(NSDictionary *)_browseURLs
 {
-    self._isCancelled = NO;
+    self._isOncePageToLoading = NO;
+    self._isCancelled         = NO;
     self._operationQueues.maxConcurrentOperationCount = self.maxConcurrentOperationCount;
     [self _downloadImageURLs:_browseURLs];
 }
 
 -(void)browseImages:(NSArray *)_images
 {
-    self._isCancelled = NO;
+    self._isOncePageToLoading = NO;
+    self._isCancelled         = NO;
     [self._caches removeAllObjects];
     NSInteger _index = 0;
     for( UIImage *_image in _images )
@@ -1307,6 +1391,7 @@ static NSInteger krBrowseButtonTag  = 1801;
  */
 -(void)browsePageByPageImageURLs:(NSDictionary *)_browseURLs firstShowImageId:(NSString *)_fireImageId
 {
+    [self _removeAllViews];
     self._isOncePageToLoading = YES;
     self._imageInfos  = [NSMutableDictionary dictionaryWithDictionary:_browseURLs];
     NSDictionary *_sortedURLs = [self _sortDictionary:_browseURLs ascending:YES];
@@ -1325,7 +1410,7 @@ static NSInteger krBrowseButtonTag  = 1801;
     [self _addViewDragGesture];
     [self _scrollToPage:self.scrollToPage];
     [self._dragView addSubview:self._scrollView];
-    [self._dragView addSubview:[self _doneBrowserButton]];
+    //[self._dragView addSubview:[self _doneBrowserButton]];
     //
     [self._backgroundView addSubview:self._dragView];
     [self.view addSubview:self._backgroundView];
@@ -1379,18 +1464,16 @@ static NSInteger krBrowseButtonTag  = 1801;
             transform = CGAffineTransformMakeRotation(M_PI_2);
             break;
         default:
-            
+            //...
             break;
     }
     [self _resizeBackgroundViewWithFrame:_frame andTransform:transform];
+    [self _resetIndicatorWithSuperFrame:_frame];
     [self _resizeDragViewWithFrame:_frame];
     [self _resizeScrollViewWithFrame:_frame];
     [self _resetGestureView];
-    [self _resizeDoneButton:(UIButton *)[self._dragView viewWithTag:krBrowseButtonTag]];
-    [self _resizeCancelButton:(UIButton *)[self.view viewWithTag:krLoadingButtonTag] withSuperFrame:_frame];
-    
-    //NSLog(@"_frame : %f, %f, %f, %f", _frame.origin.x, _frame.origin.y, _frame.size.width, _frame.size.height);
-    //NSLog(@"%f, %f", self._backgroundView.frame.size.width, self._backgroundView.frame.size.height);
+    [self _resizeDoneButton:(UIButton *)[self._dragView viewWithTag:_krImageViewerBrowsingButtonTag]];
+    //[self _resizeCancelButton:(UIButton *)[self.view viewWithTag:_krImageViewerCancelButtonTag] withSuperFrame:_frame];
 }
 
 #pragma UIScrollView Delegate

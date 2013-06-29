@@ -1,6 +1,6 @@
 //
 //  KRImageOperation.m
-//
+//  V0.9.1
 //  ilovekalvar@gmail.com
 //
 //  Created by Kuo-Ming Lin on 2012/11/07.
@@ -35,9 +35,11 @@ static NSString *krImageOperationIsExecuting = @"isExecuting";
 
 @implementation KRImageOperation (fixPrivate)
 
--(NSInteger)_findCacheMode{
+-(NSInteger)_findCacheMode
+{
     NSInteger _mode = 0;
-    switch (self.cacheMode) {
+    switch (self.cacheMode)
+    {
         case KRImageOperationAllowCache:
             _mode = NSURLRequestUseProtocolCachePolicy;
             break;
@@ -51,7 +53,8 @@ static NSString *krImageOperationIsExecuting = @"isExecuting";
     return _mode;
 }
 
--(void)_finishConnections{
+-(void)_finishConnections
+{
     [self willChangeValueForKey:krImageOperationIsExecuting];
     [self willChangeValueForKey:krImageOperationIsFinished];
     self._isExecuting = NO;
@@ -63,7 +66,8 @@ static NSString *krImageOperationIsExecuting = @"isExecuting";
 //移除連線
 -(void)_removeConnections
 {
-    if ( self._connection ) {
+    if ( self._connection )
+    {
         [self._connection unscheduleFromRunLoop:[NSRunLoop mainRunLoop] forMode:NSRunLoopCommonModes];
         self._connection   = nil;
         self._receivedData = nil;
@@ -84,9 +88,11 @@ static NSString *krImageOperationIsExecuting = @"isExecuting";
 @synthesize _dataTotalLength;
 
 
--(id)initWithImageURL:(NSString *)_imageURL{
+-(id)initWithImageURL:(NSString *)_imageURL
+{
     self = [super init];
-    if (self) {
+    if (self)
+    {
         self._isExecuting = NO;
         self._isCancelled = NO;
         self._isFinished  = NO;
@@ -98,19 +104,17 @@ static NSString *krImageOperationIsExecuting = @"isExecuting";
     return self;
 }
 
-
-#pragma My Methods
-
-
 #pragma Override NSOperation Functions 覆寫父函式
 /*
  * 以下函式都是自動執行的
  */
-- (void)start{
+- (void)start
+{
     [self willChangeValueForKey:krImageOperationIsExecuting];
     self._isExecuting = YES;
     [self didChangeValueForKey:krImageOperationIsExecuting];
-    if ( [self isCancelled] ) {
+    if ( [self isCancelled] )
+    {
         [self _finishConnections];
         return;
     }
@@ -126,19 +130,22 @@ static NSString *krImageOperationIsExecuting = @"isExecuting";
     _connection = [[NSURLConnection alloc] initWithRequest:request
                                                   delegate:self
                                           startImmediately:NO];
-    if ( self._connection ) {
+    if ( self._connection )
+    {
         _receivedData = [[NSMutableData alloc] init];
         [self._connection scheduleInRunLoop:[NSRunLoop mainRunLoop] forMode:NSRunLoopCommonModes];
     }
     [self._connection start];
 }
 
--(void)cancel{
+-(void)cancel
+{
     //NSLog(@"cancel");
     [self willChangeValueForKey:krImageOperationIsCancelled];
     self._isCancelled = YES;
     [self didChangeValueForKey:krImageOperationIsCancelled];
-    if ( [self isExecuting] ) {
+    if ( [self isExecuting] )
+    {
         [self._connection cancel];
         [self _removeConnections];
         [self _finishConnections];
@@ -148,42 +155,52 @@ static NSString *krImageOperationIsExecuting = @"isExecuting";
     }
 }
 
-- (BOOL)isCancelled{
+- (BOOL)isCancelled
+{
     return self._isCancelled;
 }
 
-- (BOOL)isConcurrent {
+- (BOOL)isConcurrent
+{
     return YES;
 }
 
-- (BOOL)isExecuting {
+- (BOOL)isExecuting
+{
     return self._isExecuting;
 }
 
-- (BOOL)isFinished {
+- (BOOL)isFinished
+{
     return self._isFinished;
 }
 
 #pragma  mark - NSURLConnection Delegate methods
-- (void)connection:(NSURLConnection *)con didReceiveResponse:(NSURLResponse *)response {
+- (void)connection:(NSURLConnection *)con didReceiveResponse:(NSURLResponse *)response
+{
     [self._receivedData setLength:0];
     self._dataTotalLength = [response expectedContentLength];
 }
 
-- (void)connection:(NSURLConnection *)con didReceiveData:(NSData *)data{
+- (void)connection:(NSURLConnection *)con didReceiveData:(NSData *)data
+{
     [self._receivedData appendData:data];
     self.progress = ( (float)[self._receivedData length] / (float)self._dataTotalLength );
     //NSLog(@"_progress : %.2f", self.progress);
 }
 
-- (void)connection:(NSURLConnection *)con didFailWithError:(NSError *)error{
+- (void)connection:(NSURLConnection *)con didFailWithError:(NSError *)error
+{
     [self cancel];
 }
 
-- (void)connection:(NSURLConnection *)connection didSendBodyData:(NSInteger)bytesWritten totalBytesWritten:(NSInteger)totalBytesWritten totalBytesExpectedToWrite:(NSInteger)totalBytesExpectedToWrite {
+- (void)connection:(NSURLConnection *)connection didSendBodyData:(NSInteger)bytesWritten totalBytesWritten:(NSInteger)totalBytesWritten totalBytesExpectedToWrite:(NSInteger)totalBytesExpectedToWrite
+{
+    //...
 }
 
-- (void)connectionDidFinishLoading:(NSURLConnection *)con{
+- (void)connectionDidFinishLoading:(NSURLConnection *)con
+{
     self.doneImage = [UIImage imageWithData:self._receivedData];
     [self _removeConnections];
     [self _finishConnections];
