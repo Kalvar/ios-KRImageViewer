@@ -20,7 +20,7 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
-    krImageViewer = [[KRImageViewer alloc] initWithDragMode:krImageViewerModeOfTopToBottom];
+    krImageViewer = [[KRImageViewer alloc] initWithDragMode:krImageViewerModeOfBoth];
     self.krImageViewer.delegate                    = self;
     self.krImageViewer.maxConcurrentOperationCount = 1;
     self.krImageViewer.dragDisapperMode            = krImageViewerDisapperAfterMiddle;

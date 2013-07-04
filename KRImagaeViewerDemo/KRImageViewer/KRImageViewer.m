@@ -402,6 +402,7 @@ static NSInteger _krImageViewerActivityIndicatorTag      = 1802;
                 if( viewCenter.y < -( [self _dragDisapperInstance] ) )
                 {
                     [self _moveView:self._gestureView toX:0.0f toY:_moveDistance];
+                    [self stop];
                 }
                 else
                 {
@@ -411,11 +412,9 @@ static NSInteger _krImageViewerActivityIndicatorTag      = 1802;
             }
             break;
         case krImageViewerModeOfBoth:
-//#error 這裡還無法動作 ... 待修
-            //上下都能拖拉 ( 待修改 Code )
+            //上下都能拖拉
             if (_panGesture.state == UIGestureRecognizerStateChanged)
             {
-                //if( center.x == self._matchPoints.x ){
                 center = CGPointMake(self._matchPoints.x, center.y + translation.y);
                 _panGesture.view.center = center;
                 [_panGesture setTranslation:CGPointZero inView:_panGesture.view];
@@ -424,12 +423,21 @@ static NSInteger _krImageViewerActivityIndicatorTag      = 1802;
                 {
                     [self _appearStatus:NO];
                 }
+                else if( viewCenter.y > [self _dragDisapperInstance] )
+                {
+                    //檢查 X 是否已過中線
+                    CGFloat _screenHeight = self._gestureView.frame.size.height;
+                    CGFloat _moveDistance = _screenHeight - self.sideInstance;
+                    //打開
+                    [self _moveView:self._gestureView toX:0.0f toY:_moveDistance];
+                    //關閉 Viewer
+                    [self stop];
+                }
                 else
                 {
                     [self _appearStatus:YES];
                 }
                 [self _resetBackgroundViewAlpha];
-                //}
             }
             
             if(_panGesture.state == UIGestureRecognizerStateEnded)
@@ -441,6 +449,7 @@ static NSInteger _krImageViewerActivityIndicatorTag      = 1802;
                 if( viewCenter.y < -( [self _dragDisapperInstance] ) )
                 {
                     [self _moveView:self._gestureView toX:0.0f toY:_moveDistance];
+                    [self stop];
                 }
                 else
                 {
