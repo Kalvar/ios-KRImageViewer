@@ -17,7 +17,7 @@ KRImageViewer which you can browsing photos from the URLs, UIImages. That you ca
 - (void)viewDidLoad
 {
     [super viewDidLoad];
-    krImageViewer = [[KRImageViewer alloc] initWithDragMode:krImageViewerModeOfTopToBottom];
+    krImageViewer = [[KRImageViewer alloc] initWithDragMode:krImageViewerModeOfBotn];
     self.krImageViewer.maxConcurrentOperationCount = 1;
     self.krImageViewer.dragDisapperMode            = krImageViewerDisapperAfterMiddle;
     self.krImageViewer.allowOperationCaching       = NO;
@@ -121,7 +121,7 @@ KRImageViewer which you can browsing photos from the URLs, UIImages. That you ca
 
 ## Version
 
-KRImageViewer now is V0.9.1 beta.
+KRImageViewer now is V0.9.5 beta.
 
 ## License
 
@@ -131,6 +131,7 @@ KRImageViewer is available under the MIT license ( or Whatever you wanna do ). S
 
 V0.9 added a function to fit rotations. <br />
 V0.9.1 fixed bugs.
+V0.9.5 fixed bugs.
 
 ## Others
 

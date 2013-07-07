@@ -1,6 +1,6 @@
 //
 //  KRImageViewer.m
-//  V0.9.1
+//  V0.9.5
 //  ilovekalvar@gmail.com
 //
 //  Created by Kuo-Ming Lin on 2012/11/07.
@@ -52,6 +52,8 @@ static NSInteger _krImageViewerActivityIndicatorTag      = 1802;
 @interface KRImageViewer (fixDrages)
 
 -(void)_initWithVars;
+-(void)_renewBackgroundViewColorAndAlpha;
+-(void)_renewDragViewColorAndAlpha;
 -(void)_resetGestureView;
 -(void)_resetViewVars;
 -(void)_setupBackgroundView;
@@ -147,6 +149,21 @@ static NSInteger _krImageViewerActivityIndicatorTag      = 1802;
     self._isOncePageToLoading  = NO;
 }
 
+-(void)_renewBackgroundViewColorAndAlpha
+{
+    [self._backgroundView setBackgroundColor:[UIColor clearColor]];
+    [self._backgroundView setBackgroundColor:[UIColor colorWithRed:_backgroundViewBlackColor
+                                                             green:_backgroundViewBlackColor
+                                                              blue:_backgroundViewBlackColor
+                                                             alpha:0.9f]];
+}
+
+-(void)_renewDragViewColorAndAlpha
+{
+    //[self._dragView setBackgroundColor:[UIColor blackColor]];
+    [self._dragView setBackgroundColor:[UIColor clearColor]];
+}
+
 -(void)_resetGestureView
 {
     if( self._dragView )
@@ -178,11 +195,7 @@ static NSInteger _krImageViewerActivityIndicatorTag      = 1802;
     {
         [self._backgroundView setFrame:self.view.frame];
     }
-    [self._backgroundView setBackgroundColor:[UIColor clearColor]];
-    [self._backgroundView setBackgroundColor:[UIColor colorWithRed:_backgroundViewBlackColor
-                                                             green:_backgroundViewBlackColor
-                                                              blue:_backgroundViewBlackColor
-                                                             alpha:0.9f]];
+    [self _renewBackgroundViewColorAndAlpha];
 }
 
 -(void)_setupDragView
@@ -207,8 +220,7 @@ static NSInteger _krImageViewerActivityIndicatorTag      = 1802;
      *   - 證實後，確實是圓角特效的關係，再加上被設置成了 masksToBounds 屬性為 YES，這就會讓被蓋在上層的 UIView 的透明背景失效 :XD ~ ( 因為層級較低 )，
      *     解決方法就是去將 masksToBounds 設成 NO 即可，或不要使用 QuartzCore 的圓角特效 XD，或將背景色設為不使用透明度的「純色系」即可。
      */
-    //[self._dragView setBackgroundColor:[UIColor blackColor]];
-    [self._dragView setBackgroundColor:[UIColor clearColor]];
+    [self _renewDragViewColorAndAlpha];
 }
 
 -(void)_resetMatchPoints
@@ -553,7 +565,9 @@ static NSInteger _krImageViewerActivityIndicatorTag      = 1802;
     CGFloat _screenHeight = self._gestureView.frame.size.height;
     CGFloat _dragHeight   = self._dragView.frame.origin.y;
     CGFloat _diffInstance = fabsf( _dragHeight - _screenHeight );
-    CGFloat _alpha        = (_diffInstance / _screenHeight);
+    CGFloat _maxHeight    = MAX(_diffInstance, _screenHeight);
+    CGFloat _minHeight    = MIN(_diffInstance, _screenHeight);
+    CGFloat _alpha        = (_minHeight / _maxHeight);
     [self._backgroundView setBackgroundColor:[UIColor colorWithRed:_backgroundViewBlackColor
                                                              green:_backgroundViewBlackColor
                                                               blue:_backgroundViewBlackColor
@@ -1275,6 +1289,9 @@ static NSInteger _krImageViewerActivityIndicatorTag      = 1802;
     [self _removeAllViews];
     //回原點
     [self _moveView:self._gestureView toX:0.0f toY:0.0f];
+    //回復黑色背景
+    [self _renewBackgroundViewColorAndAlpha];
+    [self _renewDragViewColorAndAlpha];
 }
 
 -(void)resetView:(UIView *)_parentView withDragMode:(krImageViewerModes)_dragMode
