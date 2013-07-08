@@ -67,6 +67,8 @@ typedef enum _krImageViewerDisapper
     CGFloat timeout;
     //現在的 Device 方向
     UIInterfaceOrientation interfaceOrientation;
+    //Done Button Title
+    NSString *doneButtonTitle;
 }
 
 @property (nonatomic, weak) id<KRImageViewerDelegate> delegate;
@@ -85,6 +87,7 @@ typedef enum _krImageViewerDisapper
 @property (nonatomic, assign) BOOL clipsToBounds;
 @property (nonatomic, assign) CGFloat timeout;
 @property (nonatomic, assign) UIInterfaceOrientation interfaceOrientation;
+@property (nonatomic, strong) NSString *doneButtonTitle;
 
 /*
  * Init

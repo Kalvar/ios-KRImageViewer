@@ -26,6 +26,7 @@
     self.krImageViewer.dragDisapperMode            = krImageViewerDisapperAfterMiddle;
     self.krImageViewer.allowOperationCaching       = NO;
     self.krImageViewer.timeout                     = 30.0f;
+    self.krImageViewer.doneButtonTitle             = @"DONE";
     [self preloads];
 }
 

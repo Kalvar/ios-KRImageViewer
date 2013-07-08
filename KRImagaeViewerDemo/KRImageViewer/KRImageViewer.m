@@ -145,6 +145,7 @@ static NSInteger _krImageViewerActivityIndicatorTag      = 1802;
     self.clipsToBounds         = YES;
     self.timeout               = 60.0f;
     self.interfaceOrientation  = UIInterfaceOrientationPortrait;
+    self.doneButtonTitle       = @"完成";
     self._isCancelled          = NO;
     self._isOncePageToLoading  = NO;
 }
@@ -958,7 +959,7 @@ static NSInteger _krImageViewerActivityIndicatorTag      = 1802;
     [_button setTag:_krImageViewerBrowsingButtonTag];
     [_button setBackgroundColor:[UIColor clearColor]];
     [_button setBackgroundImage:[self _imageNameNoCache:@"btn_done.png"] forState:UIControlStateNormal];
-    [_button setTitle:@"完成" forState:UIControlStateNormal];
+    [_button setTitle:self.doneButtonTitle forState:UIControlStateNormal];
     [_button setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
     [_button.titleLabel setFont:[UIFont boldSystemFontOfSize:14.0f]];
     [_button addTarget:self action:@selector(_removeBrowser:) forControlEvents:UIControlEventTouchUpInside];
@@ -1218,6 +1219,7 @@ static NSInteger _krImageViewerActivityIndicatorTag      = 1802;
 @synthesize clipsToBounds;
 @synthesize timeout;
 @synthesize interfaceOrientation;
+@synthesize doneButtonTitle;
 
 
 -(id)init
