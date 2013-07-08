@@ -11,7 +11,7 @@ KRImageViewer supports ARC.
 
 ## How To Get Started
 
-KRImageViewer which you can browsing photos from the URLs, UIImages. That you can scroll it to change pages, pinching for zooming, and you can close the viewer with touch and drag move it or swipe it to. 
+KRImageViewer which you can browsing photos from the URLs and Images ( UIImage ), that you can scroll it to change pages, pinching for zooming, and you can close the viewer with touch and drag move it or swipe it to, and it supports rotations.
 
 ``` objective-c
 - (void)viewDidLoad
