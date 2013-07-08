@@ -1306,6 +1306,11 @@ static NSInteger _krImageViewerActivityIndicatorTag      = 1802;
     [self resetView:_parentView withDragMode:self.dragMode];
 }
 
+-(void)useKeyWindow
+{
+    [self resetView:[UIApplication sharedApplication].keyWindow];
+}
+
 -(void)refresh
 {
     [self _appearStatus:YES];
@@ -1438,7 +1443,6 @@ static NSInteger _krImageViewerActivityIndicatorTag      = 1802;
     [self _scrollToPage:self.scrollToPage];
     [self._dragView addSubview:self._scrollView];
     //[self._dragView addSubview:[self _doneBrowserButton]];
-    //
     [self._backgroundView addSubview:self._dragView];
     [self.view addSubview:self._backgroundView];
     /*

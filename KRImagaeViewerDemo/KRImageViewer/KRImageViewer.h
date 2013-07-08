@@ -99,6 +99,7 @@ typedef enum _krImageViewerDisapper
 -(void)stop;
 -(void)resetView:(UIView *)_parentView withDragMode:(krImageViewerModes)_dragMode;
 -(void)resetView:(UIView *)_parentView;
+-(void)useKeyWindow;
 -(void)refresh;
 -(void)pause;
 -(void)restart;

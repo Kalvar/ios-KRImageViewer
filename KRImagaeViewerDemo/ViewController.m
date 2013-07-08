@@ -27,13 +27,13 @@
     self.krImageViewer.allowOperationCaching       = NO;
     self.krImageViewer.timeout                     = 30.0f;
     [self preloads];
-    
 }
 
 -(void)viewDidAppear:(BOOL)animated
 {
     [super viewDidAppear:animated];
-    [self.krImageViewer resetView:self.view.window];
+    [self.krImageViewer useKeyWindow];
+    //[self.krImageViewer resetView:self.view.window];
 }
 
 - (void)didReceiveMemoryWarning

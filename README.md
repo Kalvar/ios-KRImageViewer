@@ -28,7 +28,10 @@ KRImageViewer which you can browsing photos from the URLs, UIImages. That you ca
 -(void)viewDidAppear:(BOOL)animated
 {
     [super viewDidAppear:animated];
-    [self.krImageViewer resetView:self.view.window];
+    //To use the keyWindow to show. ( It always be front. )
+    [self.krImageViewer useKeyWindow];
+    //To set the superview at show.
+    //[self.krImageViewer resetView:self.view.window];
 }
 
 /*
