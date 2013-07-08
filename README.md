@@ -134,8 +134,10 @@ KRImageViewer is available under the MIT license ( or Whatever you wanna do ). S
 ## Updated Logs
 
 V0.9 added a function to fit rotations. <br />
-V0.9.1 fixed bugs.
-V0.9.5 fixed bugs.
+V0.9.1 fixed bugs. <br />
+V0.9.5 fixed bugs. <br />
+V0.9.6 fixed an issue and added a variable named " doneButtonTitle ". 
+
 
 ## Others
 
