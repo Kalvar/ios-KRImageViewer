@@ -1,6 +1,6 @@
 //
 //  KRImageViewer.h
-//  V0.9.6
+//  V0.9.7
 //  ilovekalvar@gmail.com
 //
 //  Created by Kuo-Ming Lin on 2012/11/07.
@@ -9,7 +9,7 @@
 
 #import <UIKit/UIKit.h>
 
-#define KRIV_ZOOM_SCALE 2.5
+#define KRIV_ZOOM_SCALE 2.5f
 
 @protocol KRImageViewerDelegate;
 
@@ -65,10 +65,12 @@ typedef enum _krImageViewerDisapper
     BOOL clipsToBounds;
     //讀取逾時
     CGFloat timeout;
-    //現在的 Device 方向
+    //Current Device Rotation
     UIInterfaceOrientation interfaceOrientation;
     //Done Button Title
     NSString *doneButtonTitle;
+    //Supports rotations
+    BOOL supportsRotations;
 }
 
 @property (nonatomic, weak) id<KRImageViewerDelegate> delegate;
@@ -88,6 +90,7 @@ typedef enum _krImageViewerDisapper
 @property (nonatomic, assign) CGFloat timeout;
 @property (nonatomic, assign) UIInterfaceOrientation interfaceOrientation;
 @property (nonatomic, strong) NSString *doneButtonTitle;
+@property (nonatomic, assign) BOOL supportsRotations;
 
 /*
  * Init
@@ -110,30 +113,44 @@ typedef enum _krImageViewerDisapper
 -(void)findImageScrollPageWithId:(NSString *)_imageId;
 
 /*
- * 預載圖片，但不瀏覽
+ * @ 預載圖片，但不瀏覽
+ *   - To preload the images, but it won't be start in browsing immediately.
  */
 -(void)preloadImageURLs:(NSDictionary *)_preloadImages;
 /*
- * 輸入 URL 進行下載、快取並瀏覽
+ * @ 輸入 URL 進行下載、快取並瀏覽
+ *   - Direct downloading images from URLs, caching and browsing. 
  */
 -(void)browseAnImageURL:(NSString *)_imageURL;
 -(void)browseImageURLs:(NSDictionary *)_browseURLs;
 /*
- * 直接輸入圖片進行瀏覽
+ * @ 直接輸入圖片進行瀏覽
+ *   - Direct browsing the image files. ( UIImages )
  */
 -(void)browseImages:(NSArray *)_images;
 /*
- * 直接瀏覽圖片，並且可指定要先移動到哪一張「圖片」開始瀏覽。
+ * @ 直接瀏覽圖片，並且可指定要先移動到哪一張「圖片」開始瀏覽。
+ *   - Direct browsing the image files and setting the start in page is which one.
  */
 -(void)browseImages:(NSArray *)_images startIndex:(NSInteger)_startIndex;
 /*
- * 逐頁瀏覽圖片，並設定要優先下載的圖片 ( 也就「一張一張 Load」的模式 )
+ * @ 逐頁瀏覽圖片，並設定要優先下載的圖片 ( 也就「一張一張 Load」的模式 )
+ *   - Page by Page to browse images, and you can input ID of image to set which image is the first show.
  */
 -(void)browsePageByPageImageURLs:(NSDictionary *)_browseURLs firstShowImageId:(NSString *)_fireImageId;
 /*
- * 旋轉時重載入
+ * @ 旋轉時重載入
+ *   - Reset the image-viewer's rotation. 
  */
 -(void)reloadImagesWhenRotate:(UIInterfaceOrientation)_toInterfaceOrientation;
+/*
+ * @ 監聽 Device 旋轉事件
+ *   - Watch the rotations
+ */
+-(void)startWatchRotations;
+-(void)stopWatchRotations;
+-(void)stopWatchRotationsAndBackToInitialRotation;
+
 
 @end
 

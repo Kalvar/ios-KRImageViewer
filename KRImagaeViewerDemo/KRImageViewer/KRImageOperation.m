@@ -1,6 +1,6 @@
 //
 //  KRImageOperation.m
-//  V0.9.6
+//  V0.9.7
 //  ilovekalvar@gmail.com
 //
 //  Created by Kuo-Ming Lin on 2012/11/07.
@@ -157,7 +157,7 @@ static NSString *krImageOperationIsExecuting = @"isExecuting";
 
 - (BOOL)isCancelled
 {
-    return self._isCancelled;
+    return _isCancelled;
 }
 
 - (BOOL)isConcurrent
@@ -167,12 +167,12 @@ static NSString *krImageOperationIsExecuting = @"isExecuting";
 
 - (BOOL)isExecuting
 {
-    return self._isExecuting;
+    return _isExecuting;
 }
 
 - (BOOL)isFinished
 {
-    return self._isFinished;
+    return _isFinished;
 }
 
 #pragma  mark - NSURLConnection Delegate methods

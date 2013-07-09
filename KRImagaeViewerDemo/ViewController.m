@@ -27,13 +27,17 @@
     self.krImageViewer.allowOperationCaching       = NO;
     self.krImageViewer.timeout                     = 30.0f;
     self.krImageViewer.doneButtonTitle             = @"DONE";
+    //Auto supports the rotations.
+    self.krImageViewer.supportsRotations           = YES;
     [self preloads];
 }
 
 -(void)viewDidAppear:(BOOL)animated
 {
     [super viewDidAppear:animated];
+    //To use the keyWindow to show. ( It always be front. )
     [self.krImageViewer useKeyWindow];
+    //To set the superview at show.
     //[self.krImageViewer resetView:self.view.window];
 }
 
@@ -64,7 +68,12 @@
  */
 -(void)willRotateToInterfaceOrientation:(UIInterfaceOrientation)toInterfaceOrientation duration:(NSTimeInterval)duration
 {
-    [self.krImageViewer reloadImagesWhenRotate:toInterfaceOrientation];
+    /*
+     * @ If you didn't set the " self.krImageViewer.supportsRotation = YES " to auto supporting the rotations, 
+     *   then you can using this method to do the rotation by yourself.
+     */
+    //Here to reload the KRImageViewer rotation.
+    //[self.krImageViewer reloadImagesWhenRotate:toInterfaceOrientation];
 }
 
 /*
@@ -135,6 +144,21 @@
                                 @"http://farm9.staticflickr.com/8449/7943919662_67f7345f8b_s.jpg", @"3",
                                 nil];
     [self.krImageViewer browsePageByPageImageURLs:_downloads firstShowImageId:@"2"];
+}
+
+-(IBAction)startWatchingRotationsByYourself:(id)sender
+{
+    [self.krImageViewer startWatchRotations];
+}
+
+-(IBAction)stopWatchingRotations:(id)sender
+{
+    [self.krImageViewer stopWatchRotations];
+}
+
+-(IBAction)stopWatchingRotationsAndBackToInitialOrientation:(id)sender
+{
+    [self.krImageViewer stopWatchRotationsAndBackToInitialRotation];
 }
 
 #pragma KRImageViewerDelegate

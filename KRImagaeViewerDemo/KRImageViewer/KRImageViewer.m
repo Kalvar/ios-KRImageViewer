@@ -1,6 +1,6 @@
 //
 //  KRImageViewer.m
-//  V0.9.6
+//  V0.9.7
 //  ilovekalvar@gmail.com
 //
 //  Created by Kuo-Ming Lin on 2012/11/07.
@@ -46,6 +46,9 @@ static NSInteger _krImageViewerActivityIndicatorTag      = 1802;
 @property (nonatomic, assign) BOOL _isCancelled;
 //是否執行一張一張 Load 圖的模式
 @property (nonatomic, assign) BOOL _isOncePageToLoading;
+@property (nonatomic, assign) BOOL _firstTimeSetting;
+@property (nonatomic, assign) UIInterfaceOrientation _initialInterfaceOrientation;
+
 
 @end
 
@@ -116,7 +119,7 @@ static NSInteger _krImageViewerActivityIndicatorTag      = 1802;
 -(void)_resizeDoneButton:(UIButton *)_button;
 -(void)_resizeCancelButton:(UIButton *)_button withSuperFrame:(CGRect)_superFrame;
 -(void)_resetIndicatorWithSuperFrame:(CGRect)_superFrame;
-
+-(void)_deviceDidRotate;
 
 @end
 
@@ -146,8 +149,13 @@ static NSInteger _krImageViewerActivityIndicatorTag      = 1802;
     self.timeout               = 60.0f;
     self.interfaceOrientation  = UIInterfaceOrientationPortrait;
     self.doneButtonTitle       = @"完成";
+    //Private
     self._isCancelled          = NO;
     self._isOncePageToLoading  = NO;
+    //Do Setters
+    supportsRotations          = NO;
+    self._firstTimeSetting     = YES;
+    self._initialInterfaceOrientation = UIInterfaceOrientationPortrait;
 }
 
 -(void)_renewBackgroundViewColorAndAlpha
@@ -1160,8 +1168,8 @@ static NSInteger _krImageViewerActivityIndicatorTag      = 1802;
 
 -(void)_resetIndicatorWithSuperFrame:(CGRect)_superFrame
 {
-    //尋找 UIActivityIndicator
-    //是執行 PageByPage 的方法
+    //To Search UIActivityIndicator.
+    //It is using PageByPage method.
     if( self._isOncePageToLoading )
     {
         for( KRImageScrollView *_krImageScrollView in self._scrollView.subviews )
@@ -1175,13 +1183,26 @@ static NSInteger _krImageViewerActivityIndicatorTag      = 1802;
     }
     else
     {
-        //不是 PageByPage 的方法
+        //It is not using PageByPage method.
         UIActivityIndicatorView *_activityIndicator = (UIActivityIndicatorView *)[self.view viewWithTag:_krImageViewerActivityIndicatorTag];
         if( _activityIndicator )
         {
             [self _resetIndicator:_activityIndicator withFrame:_superFrame];
         }
     }
+}
+
+-(void)_deviceDidRotate
+{
+    //NSLog(@"_deviceDidRotate");
+    UIDeviceOrientation _deviceOrientation = [[UIDevice currentDevice] orientation];
+    if( self._firstTimeSetting )
+    {
+        self._firstTimeSetting            = NO;
+        self._initialInterfaceOrientation = _deviceOrientation;
+        return;
+    }
+    [self reloadImagesWhenRotate:_deviceOrientation];
 }
 
 @end
@@ -1202,6 +1223,8 @@ static NSInteger _krImageViewerActivityIndicatorTag      = 1802;
 @synthesize _imageInfos;
 @synthesize _isCancelled;
 @synthesize _isOncePageToLoading;
+@synthesize _firstTimeSetting;
+@synthesize _initialInterfaceOrientation;
 //
 @synthesize delegate = _delegate;
 @synthesize view;
@@ -1220,6 +1243,7 @@ static NSInteger _krImageViewerActivityIndicatorTag      = 1802;
 @synthesize timeout;
 @synthesize interfaceOrientation;
 @synthesize doneButtonTitle;
+@synthesize supportsRotations = _supportsRotations;
 
 
 -(id)init
@@ -1497,7 +1521,11 @@ static NSInteger _krImageViewerActivityIndicatorTag      = 1802;
             transform = CGAffineTransformMakeRotation(M_PI_2);
             break;
         default:
-            //...
+            //NSLog(@"預設轉成直立");
+            //預設是轉成直立 ( 0 )
+            _frame.size.width  = _width;
+            _frame.size.height = _height;
+            transform = CGAffineTransformMakeRotation(M_PI * 2);
             break;
     }
     [self _resizeBackgroundViewWithFrame:_frame andTransform:transform];
@@ -1507,6 +1535,51 @@ static NSInteger _krImageViewerActivityIndicatorTag      = 1802;
     [self _resetGestureView];
     [self _resizeDoneButton:(UIButton *)[self._dragView viewWithTag:_krImageViewerBrowsingButtonTag]];
     //[self _resizeCancelButton:(UIButton *)[self.view viewWithTag:_krImageViewerCancelButtonTag] withSuperFrame:_frame];
+}
+
+-(void)startWatchRotations
+{
+    self._firstTimeSetting = NO;
+    self.supportsRotations = YES;
+}
+
+-(void)stopWatchRotations
+{
+    self._firstTimeSetting = NO;
+    self.supportsRotations = NO;
+}
+
+-(void)stopWatchRotationsAndBackToInitialRotation
+{
+    [self stopWatchRotations];
+    [self reloadImagesWhenRotate:self._initialInterfaceOrientation];
+}
+
+#pragma --mark Setters
+-(void)setSupportsRotations:(BOOL)_toSupportsRotations
+{
+    _supportsRotations = _toSupportsRotations;
+    if( _supportsRotations )
+    {
+        if( !self._firstTimeSetting )
+        {
+            [[NSNotificationCenter defaultCenter] removeObserver:self
+                                                            name:UIDeviceOrientationDidChangeNotification
+                                                          object:nil];
+        }
+        //NSLog(@"setSupportsRotations YES");
+        [[NSNotificationCenter defaultCenter] addObserver:self
+                                                 selector:@selector(_deviceDidRotate)
+                                                     name:UIDeviceOrientationDidChangeNotification
+                                                   object:nil];
+    }
+    else
+    {
+        //NSLog(@"setSupportsRotations NO");
+        [[NSNotificationCenter defaultCenter] removeObserver:self
+                                                        name:UIDeviceOrientationDidChangeNotification
+                                                      object:nil];
+    }
 }
 
 #pragma UIScrollView Delegate

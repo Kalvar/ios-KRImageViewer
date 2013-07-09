@@ -14,24 +14,37 @@ KRImageViewer supports ARC.
 KRImageViewer which you can browsing photos from the URLs and Images ( UIImage ), that you can scroll it to change pages, pinching for zooming, and you can close the viewer with touch and drag move it or swipe it to, and it supports rotations.
 
 ``` objective-c
+#import "KRImageViewer.h"
+
+@interface ViewController ()<KRImageViewerDelegate>
+
+@property (nonatomic, strong) KRImageViewer *krImageViewer;
+
+@end
+
+@implementation ViewController
+
+@synthesize krImageViewer;
+
 - (void)viewDidLoad
 {
     [super viewDidLoad];
-    krImageViewer = [[KRImageViewer alloc] initWithDragMode:krImageViewerModeOfBotn];
+    krImageViewer = [[KRImageViewer alloc] initWithDragMode:krImageViewerModeOfBoth];
+    self.krImageViewer.delegate                    = self;
     self.krImageViewer.maxConcurrentOperationCount = 1;
     self.krImageViewer.dragDisapperMode            = krImageViewerDisapperAfterMiddle;
     self.krImageViewer.allowOperationCaching       = NO;
     self.krImageViewer.timeout                     = 30.0f;
     self.krImageViewer.doneButtonTitle             = @"DONE";
+    //Auto supports the rotations.
+    self.krImageViewer.supportsRotations           = YES;
     [self preloads];
 }
 
 -(void)viewDidAppear:(BOOL)animated
 {
     [super viewDidAppear:animated];
-    //To use the keyWindow to show. ( It always be front. )
     [self.krImageViewer useKeyWindow];
-    //To set the superview at show.
     //[self.krImageViewer resetView:self.view.window];
 }
 
@@ -56,8 +69,12 @@ KRImageViewer which you can browsing photos from the URLs and Images ( UIImage )
  */
 -(void)willRotateToInterfaceOrientation:(UIInterfaceOrientation)toInterfaceOrientation duration:(NSTimeInterval)duration
 {
+    /*
+     * @ If you didn't set the " self.krImageViewer.supportsRotation = YES " to auto supporting the rotations, 
+     *   then you can using this method to do the rotation by yourself.
+     */
     //Here to reload the KRImageViewer rotation.
-    [self.krImageViewer reloadImagesWhenRotate:toInterfaceOrientation];
+    //[self.krImageViewer reloadImagesWhenRotate:toInterfaceOrientation];
 }
 
 #pragma Method Samples
@@ -121,11 +138,27 @@ KRImageViewer which you can browsing photos from the URLs and Images ( UIImage )
                                 nil];
     [self.krImageViewer browsePageByPageImageURLs:_downloads firstShowImageId:@"2"];
 }
+
+-(IBAction)startWatchingRotationsByYourself:(id)sender
+{
+    [self.krImageViewer startWatchRotations];
+}
+
+-(IBAction)stopWatchingRotations:(id)sender
+{
+    [self.krImageViewer stopWatchRotations];
+}
+
+-(IBAction)stopWatchingRotationsAndBackToInitialOrientation:(id)sender
+{
+    [self.krImageViewer stopWatchRotationsAndBackToInitialRotation];
+}
+@end
 ```
 
 ## Version
 
-KRImageViewer now is V0.9.6 beta.
+KRImageViewer now is V0.9.7 beta.
 
 ## License
 
@@ -136,8 +169,8 @@ KRImageViewer is available under the MIT license ( or Whatever you wanna do ). S
 V0.9 added a function to fit rotations. <br />
 V0.9.1 fixed bugs. <br />
 V0.9.5 fixed bugs. <br />
-V0.9.6 fixed an issue and added a variable named " doneButtonTitle ". 
-
+V0.9.6 fixed an issue and added a variable named " doneButtonTitle ". <br />
+V0.9.7 fixed an issue and supported auto rotations.
 
 ## Others
 

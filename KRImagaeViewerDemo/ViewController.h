@@ -17,5 +17,10 @@
 -(IBAction)browsingPreloads:(id)sender;
 -(IBAction)browsingURLs:(id)sender;
 -(IBAction)browsingImages:(id)sender;
+-(IBAction)browsingImagesPageByPage:(id)sender;
+-(IBAction)startWatchingRotationsByYourself:(id)sender;
+-(IBAction)stopWatchingRotations:(id)sender;
+-(IBAction)stopWatchingRotationsAndBackToInitialOrientation:(id)sender;
+
 
 @end
