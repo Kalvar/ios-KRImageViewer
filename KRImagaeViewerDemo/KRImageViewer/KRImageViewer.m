@@ -1,6 +1,6 @@
 //
 //  KRImageViewer.m
-//  V0.9.7
+//  V1.0.0
 //  ilovekalvar@gmail.com
 //
 //  Created by Kuo-Ming Lin on 2012/11/07.
@@ -70,6 +70,8 @@ static NSInteger _krImageViewerActivityIndicatorTag      = 1802;
 -(void)_displayDoneButton;
 -(void)_handleDrag:(UIPanGestureRecognizer*)_panGesture;
 //
+-(void)_addCacheImage:(UIImage *)_doneImage forKey:(NSString *)_imageKey;
+-(void)_removeAllCaches;
 -(void)_resortKeys;
 -(void)_cancelAllOperations;
 -(void)_downloadImageURLs:(NSDictionary *)_urls;
@@ -149,6 +151,7 @@ static NSInteger _krImageViewerActivityIndicatorTag      = 1802;
     self.timeout               = 60.0f;
     self.interfaceOrientation  = UIInterfaceOrientationPortrait;
     self.doneButtonTitle       = @"完成";
+    self.overCacheCountRelease = 0;
     //Private
     self._isCancelled          = NO;
     self._isOncePageToLoading  = NO;
@@ -314,7 +317,8 @@ static NSInteger _krImageViewerActivityIndicatorTag      = 1802;
 }
 
 /*
- * 拖拉的動作，待修 !
+ * 拖拉的動作
+ * - 待優化
  */
 -(void)_handleDrag:(UIPanGestureRecognizer *)_panGesture
 {
@@ -484,6 +488,23 @@ static NSInteger _krImageViewerActivityIndicatorTag      = 1802;
     }
 }
 
+-(void)_addCacheImage:(UIImage *)_doneImage forKey:(NSString *)_imageKey
+{
+    if( self.overCacheCountRelease > 0 )
+    {
+        if( [self._caches count] > self.overCacheCountRelease )
+        {
+            [self _removeAllCaches];
+        }
+    }
+    [self._caches setObject:_doneImage forKey:_imageKey];
+}
+
+-(void)_removeAllCaches
+{
+    [self._caches removeAllObjects];
+}
+
 -(void)_resortKeys
 {
     if( [self._caches count] > 0 )
@@ -510,7 +531,7 @@ static NSInteger _krImageViewerActivityIndicatorTag      = 1802;
 {
     [self _cancelAllOperations];
     [self _startLoadingOnMainView];
-    //[self._caches removeAllObjects];
+    //[self _removeAllCaches];
     NSInteger _total = [_urlInfos count];
     if( _total > 0 )
     {
@@ -541,7 +562,7 @@ static NSInteger _krImageViewerActivityIndicatorTag      = 1802;
                 //寫入快取
                 if( _operation.doneImage )
                 {
-                    [self._caches setObject:_operation.doneImage forKey:_imageKey];
+                    [self _addCacheImage:_operation.doneImage forKey:_imageKey];
                     _operation.doneImage = nil;
                 }
                 //全處理完了 + 是最後一筆
@@ -926,7 +947,7 @@ static NSInteger _krImageViewerActivityIndicatorTag      = 1802;
 -(void)_refreshCaches
 {
     [self _cancelAllOperations];
-    [self._caches removeAllObjects];
+    [self _removeAllCaches];
 }
 
 //精靈消失效果
@@ -1052,7 +1073,7 @@ static NSInteger _krImageViewerActivityIndicatorTag      = 1802;
                 //寫入快取
                 if( _operation.doneImage )
                 {
-                    [self._caches setObject:_operation.doneImage forKey:_imageKey];
+                    [self _addCacheImage:_operation.doneImage forKey:_imageKey];;
                     if( !self._isCancelled )
                     {
                         //顯示在該頁的 Subview 上
@@ -1244,6 +1265,7 @@ static NSInteger _krImageViewerActivityIndicatorTag      = 1802;
 @synthesize interfaceOrientation;
 @synthesize doneButtonTitle;
 @synthesize supportsRotations = _supportsRotations;
+@synthesize overCacheCountRelease;
 
 
 -(id)init
@@ -1289,7 +1311,7 @@ static NSInteger _krImageViewerActivityIndicatorTag      = 1802;
 
 -(void)dealloc
 {
-    [self._caches removeAllObjects];
+    [self _removeAllCaches];
     [self _scrollViewRemoveAllSubviews];
 }
 
@@ -1380,7 +1402,7 @@ static NSInteger _krImageViewerActivityIndicatorTag      = 1802;
             [_operation setCompletionBlock:^{
                 if( _operation.doneImage )
                 {
-                    [self._caches setObject:_operation.doneImage forKey:_imageKey];
+                    [self _addCacheImage:_operation.doneImage forKey:_imageKey];;
                     _operation.doneImage = nil;
                 }
                 if( _operationQueues.operationCount == 0 )
@@ -1412,7 +1434,7 @@ static NSInteger _krImageViewerActivityIndicatorTag      = 1802;
 {
     self._isOncePageToLoading = NO;
     self._isCancelled         = NO;
-    [self._caches removeAllObjects];
+    [self _removeAllCaches];
     NSInteger _index = 0;
     for( UIImage *_image in _images )
     {
@@ -1421,7 +1443,7 @@ static NSInteger _krImageViewerActivityIndicatorTag      = 1802;
     }
     [self _resortKeys];
     [self start];
-    [self._caches removeAllObjects];
+    [self _removeAllCaches];
 }
 
 -(void)browseImages:(NSArray *)_images startIndex:(NSInteger)_startIndex

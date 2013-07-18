@@ -38,6 +38,8 @@ KRImageViewer which you can browsing photos from the URLs and Images ( UIImage )
     self.krImageViewer.doneButtonTitle             = @"DONE";
     //Auto supports the rotations.
     self.krImageViewer.supportsRotations           = YES;
+    //It'll release caches when caches of image over than 200 photos, but it'll be holding current image to display on the viewer.
+    self.krImageViewer.overCacheCountRelease       = 200;
     [self preloads];
 }
 
@@ -166,11 +168,12 @@ KRImageViewer is available under the MIT license ( or Whatever you wanna do ). S
 
 ## Updated Logs
 
-V0.9 added a function to fit rotations. <br />
+V0.9.0 added a function to fit rotations. <br />
 V0.9.1 fixed bugs. <br />
 V0.9.5 fixed bugs. <br />
 V0.9.6 fixed an issue and added a variable named " doneButtonTitle ". <br />
-V0.9.7 fixed an issue and supported auto rotations.
+V0.9.7 fixed an issue and supported auto rotations. <br />
+V1.0.0 fixed a bug and added a new variable named " overCacheCountRelease " to control the cache-memory.
 
 ## Others
 

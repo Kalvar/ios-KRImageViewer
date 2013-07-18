@@ -1,6 +1,6 @@
 //
 //  KRImageScrollView.m
-//  V0.9.7
+//  V1.0.0
 //  ilovekalvar@gmail.com
 //
 //  Created by Kuo-Ming Lin on 2012/11/07.

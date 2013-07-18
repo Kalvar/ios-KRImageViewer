@@ -29,6 +29,8 @@
     self.krImageViewer.doneButtonTitle             = @"DONE";
     //Auto supports the rotations.
     self.krImageViewer.supportsRotations           = YES;
+    //It'll release caches when caches of image over than X photos, but it'll be holding current image to display on the viewer.
+    self.krImageViewer.overCacheCountRelease       = 200;
     [self preloads];
 }
 

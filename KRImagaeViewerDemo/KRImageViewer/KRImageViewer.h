@@ -1,6 +1,6 @@
 //
 //  KRImageViewer.h
-//  V0.9.7
+//  V1.0.0
 //  ilovekalvar@gmail.com
 //
 //  Created by Kuo-Ming Lin on 2012/11/07.
@@ -71,6 +71,8 @@ typedef enum _krImageViewerDisapper
     NSString *doneButtonTitle;
     //Supports rotations
     BOOL supportsRotations;
+    //Auto clear the memory caches.
+    NSInteger overCacheCountRelease;
 }
 
 @property (nonatomic, weak) id<KRImageViewerDelegate> delegate;
@@ -91,9 +93,10 @@ typedef enum _krImageViewerDisapper
 @property (nonatomic, assign) UIInterfaceOrientation interfaceOrientation;
 @property (nonatomic, strong) NSString *doneButtonTitle;
 @property (nonatomic, assign) BOOL supportsRotations;
+@property (nonatomic, assign) NSInteger overCacheCountRelease;
 
 /*
- * Init
+ * Initialize
  */
 -(id)initWithParentView:(UIView *)_parentView dragMode:(krImageViewerModes)_dragMode;
 -(id)initWithDragMode:(krImageViewerModes)_dragMode;
