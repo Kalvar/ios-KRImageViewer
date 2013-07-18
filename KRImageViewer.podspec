@@ -7,7 +7,6 @@ Pod::Spec.new do |s|
   s.homepage     = "https://www.github.com/Kalvar/ios-KRImageViewer"
   s.author       = "Kalvar"
   s.source       = { :git => "https://github.com/Kalvar/ios-KRImageViewer.git", :tag => "v#{s.version}" }
-  
   s.source_files = "KRImagaeViewerDemo/KRImageViewer/**/*.{h,m}"
   s.requires_arc = false
 end

@@ -160,7 +160,7 @@ KRImageViewer which you can browsing photos from the URLs and Images ( UIImage )
 
 ## Version
 
-KRImageViewer now is V0.9.7 beta.
+KRImageViewer now is V1.0.0.
 
 ## License
 
