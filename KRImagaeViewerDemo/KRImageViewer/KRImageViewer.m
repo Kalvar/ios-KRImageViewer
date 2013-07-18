@@ -1223,7 +1223,7 @@ static NSInteger _krImageViewerActivityIndicatorTag      = 1802;
         self._initialInterfaceOrientation = _deviceOrientation;
         return;
     }
-    [self reloadImagesWhenRotate:_deviceOrientation];
+    [self reloadImagesWhenRotate:(UIInterfaceOrientation)_deviceOrientation];
 }
 
 @end
