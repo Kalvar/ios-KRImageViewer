@@ -39,8 +39,8 @@
     [super viewDidAppear:animated];
     //To use the keyWindow to show. ( It always be front. )
     [self.krImageViewer useKeyWindow];
-    //To set the superview at show.
-    //[self.krImageViewer resetView:self.view.window];
+    //To set the superview at show ( You can setup this method with your custom view to be parent view to show ).
+    //[self.krImageViewer resetView:self.myCustomCellView];
 }
 
 - (void)didReceiveMemoryWarning

@@ -423,7 +423,7 @@ static NSInteger _krImageViewerActivityIndicatorTag      = 1802;
                 CGFloat _moveDistance = -(_screenHeight - self.sideInstance);
                 [self _appearStatus:NO];
                 [self _displayDoneButton];
-                //Open
+                //過中線就 Open
                 if( viewCenter.y < -( [self _dragDisapperInstance] ) )
                 {
                     [self _moveView:self._gestureView toX:0.0f toY:_moveDistance];

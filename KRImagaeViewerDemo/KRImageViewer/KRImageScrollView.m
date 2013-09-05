@@ -137,7 +137,6 @@
     [self addSubview:self._imageView];
 }
 
-//#error 這裡會一直被 reset ... 要想個方法增進效能
 -(void)resetImage:(UIImage *)_subImage
 {
     self._imageView.image = nil;
