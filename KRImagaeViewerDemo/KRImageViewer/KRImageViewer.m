@@ -1,6 +1,6 @@
 //
 //  KRImageViewer.m
-//  V1.0.0
+//  V1.0.1
 //  ilovekalvar@gmail.com
 //
 //  Created by Kuo-Ming Lin on 2012/11/07.
@@ -159,6 +159,8 @@ static NSInteger _krImageViewerActivityIndicatorTag      = 1802;
     supportsRotations          = NO;
     self._firstTimeSetting     = YES;
     self._initialInterfaceOrientation = UIInterfaceOrientationPortrait;
+    self.sortAsc               = NO;
+    self.forceDisplays         = [[NSMutableArray alloc] initWithCapacity:0];
 }
 
 -(void)_renewBackgroundViewColorAndAlpha
@@ -1040,6 +1042,22 @@ static NSInteger _krImageViewerActivityIndicatorTag      = 1802;
     dispatch_queue_t queue = dispatch_queue_create("_loadImageWithPageQueue", NULL);
     dispatch_async(queue, ^(void) {
         NSInteger _loadIndex = _loadPage > 1 ? _loadPage - 1 : 0;
+        //Fixed a Crash Bug by 2013.12.03 PM 23:36
+        if( [self._sortedKeys count] < [self._imageInfos count] )
+        {
+            if( self.forceDisplays )
+            {
+                if( [self.forceDisplays count] > 0 )
+                {
+                    self._sortedKeys = self.forceDisplays;
+                }
+            }
+            else
+            {
+                NSDictionary *_sortedURLs = [self _sortDictionary:self._imageInfos ascending:self.sortAsc];
+                self._sortedKeys          = [NSMutableArray arrayWithArray:[_sortedURLs objectForKey:@"keys"]];
+            }
+        }
         if( _loadIndex > ( self._sortedKeys.count - 1 ) )
         {
             return;
@@ -1266,6 +1284,8 @@ static NSInteger _krImageViewerActivityIndicatorTag      = 1802;
 @synthesize doneButtonTitle;
 @synthesize supportsRotations = _supportsRotations;
 @synthesize overCacheCountRelease;
+@synthesize sortAsc;
+@synthesize forceDisplays = _forceDisplays;
 
 
 -(id)init
@@ -1475,7 +1495,14 @@ static NSInteger _krImageViewerActivityIndicatorTag      = 1802;
     self._isOncePageToLoading = YES;
     self._imageInfos  = [NSMutableDictionary dictionaryWithDictionary:_browseURLs];
     NSDictionary *_sortedURLs = [self _sortDictionary:_browseURLs ascending:YES];
-    self._sortedKeys  = [NSMutableArray arrayWithArray:[_sortedURLs objectForKey:@"keys"]];
+    if( [self.forceDisplays count] > 0 )
+    {
+        self._sortedKeys  = [NSMutableArray arrayWithArray:self.forceDisplays];
+    }
+    else
+    {
+        self._sortedKeys  = [NSMutableArray arrayWithArray:[_sortedURLs objectForKey:@"keys"]];
+    }
     [self findImageScrollPageWithId:_fireImageId];
     //NSArray *_values = [_sortedURLs objectForKey:@"values"];
     /*

@@ -1,6 +1,6 @@
 //
 //  KRImageViewer.h
-//  V1.0.0
+//  V1.0.1
 //  ilovekalvar@gmail.com
 //
 //  Created by Kuo-Ming Lin on 2012/11/07.
@@ -73,6 +73,10 @@ typedef enum _krImageViewerDisapper
     BOOL supportsRotations;
     //Auto clear the memory caches.
     NSInteger overCacheCountRelease;
+    //Sorting Rule.
+    BOOL sortAsc;
+    //外部決定的圖片顯示順序
+    NSMutableArray *forceDisplays;
 }
 
 @property (nonatomic, weak) id<KRImageViewerDelegate> delegate;
@@ -94,6 +98,8 @@ typedef enum _krImageViewerDisapper
 @property (nonatomic, strong) NSString *doneButtonTitle;
 @property (nonatomic, assign) BOOL supportsRotations;
 @property (nonatomic, assign) NSInteger overCacheCountRelease;
+@property (nonatomic, assign) BOOL sortAsc;
+@property (nonatomic, strong) NSMutableArray *forceDisplays;
 
 /*
  * Initialize

@@ -31,6 +31,8 @@
     self.krImageViewer.supportsRotations           = YES;
     //It'll release caches when caches of image over than X photos, but it'll be holding current image to display on the viewer.
     self.krImageViewer.overCacheCountRelease       = 200;
+    //Sorting Rule, Default ASC is YES, DESC is NO.
+    self.krImageViewer.sortAsc                     = YES;
     [self preloads];
 }
 
@@ -145,6 +147,9 @@
                                 @"http://farm9.staticflickr.com/8435/7944303392_a856d79802_s.jpg", @"2",
                                 @"http://farm9.staticflickr.com/8449/7943919662_67f7345f8b_s.jpg", @"3",
                                 nil];
+    //Presents pictures in follow your displaying rules.
+    self.krImageViewer.forceDisplays = [NSMutableArray arrayWithObjects:@"3", @"1", @"2", nil];
+    //Now, the firstShowImageId:@"2" will sort in last one and display it first.
     [self.krImageViewer browsePageByPageImageURLs:_downloads firstShowImageId:@"2"];
 }
 

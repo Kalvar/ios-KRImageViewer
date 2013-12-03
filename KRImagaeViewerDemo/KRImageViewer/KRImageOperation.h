@@ -1,6 +1,6 @@
 //
 //  KRImageOperation.h
-//  V1.0.0
+//  V1.0.1
 //  ilovekalvar@gmail.com
 //
 //  Created by Kuo-Ming Lin on 2012/11/07.

@@ -5,10 +5,6 @@
 <img src="https://dl.dropbox.com/u/83663874/GitHubs/KRImageViewer-3.png" alt="KRImageViewer" title="KRImageViewer" style="margin: 20px;" class="center" /> &nbsp;
 <img src="https://dl.dropbox.com/u/83663874/GitHubs/KRImageViewer-4.png" alt="KRImageViewer" title="KRImageViewer" style="margin: 20px;" class="center" />
 
-## Supports
-
-KRImageViewer supports ARC.
-
 ## How To Get Started
 
 KRImageViewer which you can browsing photos from the URLs and Images ( UIImage ), that you can scroll it to change pages, pinching for zooming, and you can close the viewer with touch and drag move it or swipe it to, and it supports rotations.
@@ -40,6 +36,8 @@ KRImageViewer which you can browsing photos from the URLs and Images ( UIImage )
     self.krImageViewer.supportsRotations           = YES;
     //It'll release caches when caches of image over than 200 photos, but it'll be holding current image to display on the viewer.
     self.krImageViewer.overCacheCountRelease       = 200;
+    //Sorting Rule, Default ASC is YES, DESC is NO.
+    self.krImageViewer.sortAsc                     = YES;
     [self preloads];
 }
 
@@ -138,6 +136,9 @@ KRImageViewer which you can browsing photos from the URLs and Images ( UIImage )
                                 @"http://farm9.staticflickr.com/8435/7944303392_a856d79802_s.jpg", @"2",
                                 @"http://farm9.staticflickr.com/8449/7943919662_67f7345f8b_s.jpg", @"3",
                                 nil];
+    //Presents pictures in follow your displaying rules.
+    self.krImageViewer.forceDisplays = [NSMutableArray arrayWithObjects:@"3", @"1", @"2", nil];
+    //Now, the firstShowImageId:@"2" will sort in last one and display it first. 
     [self.krImageViewer browsePageByPageImageURLs:_downloads firstShowImageId:@"2"];
 }
 
@@ -160,7 +161,7 @@ KRImageViewer which you can browsing photos from the URLs and Images ( UIImage )
 
 ## Version
 
-KRImageViewer now is V1.0.0.
+KRImageViewer now is V1.0.1.
 
 ## License
 
@@ -173,7 +174,8 @@ V0.9.1 fixed bugs. <br />
 V0.9.5 fixed bugs. <br />
 V0.9.6 fixed an issue and added a variable named " doneButtonTitle ". <br />
 V0.9.7 fixed an issue and supported auto rotations. <br />
-V1.0.0 fixed a bug and added a new variable named " overCacheCountRelease " to control the cache-memory.
+V1.0.0 fixed a bug and added a new variable named " overCacheCountRelease " to control the cache-memory. <br />
+V1.0.1 fixed an iOS 7 memory bug and added 2 new variables named " sortAsc " and " forceDisplays ".
 
 ## Others
 
