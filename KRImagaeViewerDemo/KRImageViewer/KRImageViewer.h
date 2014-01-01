@@ -1,10 +1,10 @@
 //
 //  KRImageViewer.h
-//  V1.0.1
+//  V1.0.2
 //  ilovekalvar@gmail.com
 //
 //  Created by Kuo-Ming Lin on 2012/11/07.
-//  Copyright (c) 2012年 Kuo-Ming Lin. All rights reserved.
+//  Copyright (c) 2012 - 2014 年 Kuo-Ming Lin. All rights reserved.
 //
 
 #import <UIKit/UIKit.h>
@@ -14,7 +14,7 @@
 @protocol KRImageViewerDelegate;
 
 //圖片的拖拉消失模式
-typedef enum _krImageViewerModes
+typedef enum krImageViewerModes
 {
     //兩邊都行( 預設 )
     krImageViewerModeOfBoth = 0,
@@ -25,7 +25,7 @@ typedef enum _krImageViewerModes
 } krImageViewerModes;
 
 //圖片自動消失的距離
-typedef enum _krImageViewerDisapper
+typedef enum krImageViewerDisapper
 {
     //過中線才消失
     krImageViewerDisapperAfterMiddle = 0,
@@ -36,6 +36,11 @@ typedef enum _krImageViewerDisapper
     //不消失
     krImageViewerDisapperNothing
 } krImageViewerDisapper;
+
+//現在正瀏覽到哪一頁
+typedef void(^KRImageViewerBrowsingHandler)(NSInteger browsingPage);
+//現在正捲動到哪一頁
+typedef void(^KRImageViewerScrollingHandler)(NSInteger scrollingPage);
 
 @interface KRImageViewer : NSObject<UIScrollViewDelegate>
 {
@@ -100,6 +105,14 @@ typedef enum _krImageViewerDisapper
 @property (nonatomic, assign) NSInteger overCacheCountRelease;
 @property (nonatomic, assign) BOOL sortAsc;
 @property (nonatomic, strong) NSMutableArray *forceDisplays;
+
+@property (nonatomic, copy) KRImageViewerBrowsingHandler browsingHandler;
+@property (nonatomic, copy) KRImageViewerScrollingHandler scrollingHandler;
+
+-(void)setBrowsingHandler:(KRImageViewerBrowsingHandler)_theBrowsingHandler;
+-(void)setScrollingHandler:(KRImageViewerScrollingHandler)_theScrollingHandler;
+
++(instancetype)sharedManager;
 
 /*
  * Initialize

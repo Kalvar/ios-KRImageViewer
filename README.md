@@ -39,6 +39,18 @@ KRImageViewer which you can browsing photos from the URLs and Images ( UIImage )
     //Sorting Rule, Default ASC is YES, DESC is NO.
     self.krImageViewer.sortAsc                     = YES;
     [self preloads];
+
+    [self.krImageViewer setBrowsingHandler:^(NSInteger browsingPage)
+    {
+        //Current Browsing Page.
+        //...Do Something.
+    }];
+    
+    [self.krImageViewer setScrollingHandler:^(NSInteger scrollingPage)
+    {
+        //Current Scrolling Page.
+        //...Do Something.
+    }];
 }
 
 -(void)viewDidAppear:(BOOL)animated
@@ -161,7 +173,7 @@ KRImageViewer which you can browsing photos from the URLs and Images ( UIImage )
 
 ## Version
 
-KRImageViewer now is V1.0.1.
+KRImageViewer now is V1.0.2.
 
 ## License
 
@@ -175,7 +187,8 @@ V0.9.5 fixed bugs. <br />
 V0.9.6 fixed an issue and added a variable named " doneButtonTitle ". <br />
 V0.9.7 fixed an issue and supported auto rotations. <br />
 V1.0.0 fixed a bug and added a new variable named " overCacheCountRelease " to control the cache-memory. <br />
-V1.0.1 fixed an iOS 7 memory bug and added 2 new variables named " sortAsc " and " forceDisplays ".
+V1.0.1 fixed an iOS 7 memory bug and added 2 new variables named " sortAsc " and " forceDisplays ". <br />
+V1.0.2 added 2 bloks function.
 
 ## Others
 

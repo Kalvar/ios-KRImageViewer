@@ -1,10 +1,10 @@
 //
 //  KRImageViewer.m
-//  V1.0.1
+//  V1.0.2
 //  ilovekalvar@gmail.com
 //
 //  Created by Kuo-Ming Lin on 2012/11/07.
-//  Copyright (c) 2012年 Kuo-Ming Lin. All rights reserved.
+//  Copyright (c) 2012 - 2014 年 Kuo-Ming Lin. All rights reserved.
 //
 
 #import <QuartzCore/QuartzCore.h>
@@ -161,6 +161,9 @@ static NSInteger _krImageViewerActivityIndicatorTag      = 1802;
     self._initialInterfaceOrientation = UIInterfaceOrientationPortrait;
     self.sortAsc               = NO;
     self.forceDisplays         = [[NSMutableArray alloc] initWithCapacity:0];
+    
+    self.browsingHandler  = nil;
+    self.scrollingHandler = nil;
 }
 
 -(void)_renewBackgroundViewColorAndAlpha
@@ -1154,6 +1157,11 @@ static NSInteger _krImageViewerActivityIndicatorTag      = 1802;
             [self.delegate krImageViewerIsBrowsingPage:self.scrollToPage];
         }
     }
+    
+    if( self.browsingHandler )
+    {
+        self.browsingHandler(self.scrollToPage);
+    }
 }
 
 -(void)_firedScrollingDelegate
@@ -1164,6 +1172,11 @@ static NSInteger _krImageViewerActivityIndicatorTag      = 1802;
         {
             [self.delegate krImageViewerIsScrollingToPage:self.scrollToPage];
         }
+    }
+    
+    if( self.scrollingHandler )
+    {
+        self.scrollingHandler(self.scrollToPage);
     }
 }
 
@@ -1287,6 +1300,18 @@ static NSInteger _krImageViewerActivityIndicatorTag      = 1802;
 @synthesize sortAsc;
 @synthesize forceDisplays = _forceDisplays;
 
+@synthesize browsingHandler  = _browsingHandler;
+@synthesize scrollingHandler = _scrollingHandler;
+
++(instancetype)sharedManager
+{
+    static dispatch_once_t pred;
+    static KRImageViewer *sharedManager = nil;
+    dispatch_once(&pred, ^{
+        sharedManager = [[self alloc] init];
+    });
+    return sharedManager;
+}
 
 -(id)init
 {
@@ -1488,6 +1513,10 @@ static NSInteger _krImageViewerActivityIndicatorTag      = 1802;
  *   - 優先下載的圖片完成後，即可進行圖片瀏覽的動作。
  *   - 每次捲動至另一頁時，就下載該頁的圖。
  *   - 可考慮進行「當前頁面下載完成後，同時進行下載下一張圖與上一張圖片」之預載行為。
+ *
+ * @ 備註
+ *   - 要注意，如在外部有使用過一次 forceDisplays，則後續又想新增圖片後並 Reload ImageViewer 的顯示圖片，
+ *     就必須再重新設定一次 forceDisplays 才行，否則該新增的圖片會顯示失敗。
  */
 -(void)browsePageByPageImageURLs:(NSDictionary *)_browseURLs firstShowImageId:(NSString *)_fireImageId
 {
@@ -1629,6 +1658,16 @@ static NSInteger _krImageViewerActivityIndicatorTag      = 1802;
                                                         name:UIDeviceOrientationDidChangeNotification
                                                       object:nil];
     }
+}
+
+-(void)setBrowsingHandler:(KRImageViewerBrowsingHandler)_theBrowsingHandler
+{
+    _browsingHandler = _theBrowsingHandler;
+}
+
+-(void)setScrollingHandler:(KRImageViewerScrollingHandler)_theScrollingHandler
+{
+    _scrollingHandler = _theScrollingHandler;
 }
 
 #pragma UIScrollView Delegate

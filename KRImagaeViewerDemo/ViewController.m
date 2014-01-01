@@ -3,7 +3,7 @@
 //  KRImagaeViewerDemo
 //
 //  Created by Kalvar on 12/10/21.
-//  Copyright (c) 2012年 Kuo-Ming Lin. All rights reserved.
+//  Copyright (c) 2012 - 2014 年 Kuo-Ming Lin. All rights reserved.
 //
 
 #import "ViewController.h"
@@ -34,6 +34,19 @@
     //Sorting Rule, Default ASC is YES, DESC is NO.
     self.krImageViewer.sortAsc                     = YES;
     [self preloads];
+    
+    [self.krImageViewer setBrowsingHandler:^(NSInteger browsingPage)
+    {
+        //Current Browsing Page.
+        //...Do Something.
+    }];
+    
+    [self.krImageViewer setScrollingHandler:^(NSInteger scrollingPage)
+    {
+        //Current Scrolling Page.
+        //...Do Something.
+    }];
+    
 }
 
 -(void)viewDidAppear:(BOOL)animated
