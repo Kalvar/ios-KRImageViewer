@@ -1,10 +1,10 @@
 //
 //  KRImageScrollView.h
-//  V1.0.2
+//  V1.0.3
 //  ilovekalvar@gmail.com
 //
 //  Created by Kuo-Ming Lin on 2012/11/07.
-//  Copyright (c) 2012 - 2014 年 Kuo-Ming Lin. All rights reserved.
+//  Copyright (c) 2012 - 2015 年 Kuo-Ming Lin. All rights reserved.
 //
 
 #import <UIKit/UIKit.h>

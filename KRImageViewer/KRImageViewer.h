@@ -1,10 +1,10 @@
 //
 //  KRImageViewer.h
-//  V1.0.2
+//  V1.0.3
 //  ilovekalvar@gmail.com
 //
 //  Created by Kuo-Ming Lin on 2012/11/07.
-//  Copyright (c) 2012 - 2014 年 Kuo-Ming Lin. All rights reserved.
+//  Copyright (c) 2012 - 2015 年 Kuo-Ming Lin. All rights reserved.
 //
 
 #import <UIKit/UIKit.h>
@@ -56,7 +56,7 @@ typedef void(^KRImageViewerScrollingHandler)(NSInteger scrollingPage);
     //距離螢幕邊緣多遠就定位
     CGFloat sideInstance;
     //最後定位的動畫時間
-    CGFloat durations;
+    CGFloat animateDuration;
     //佇列 Queue 在每次會處理幾張圖片
     NSInteger maxConcurrentOperationCount;
     //是否隱藏狀態列
@@ -73,7 +73,7 @@ typedef void(^KRImageViewerScrollingHandler)(NSInteger scrollingPage);
     //Current Device Rotation
     UIInterfaceOrientation interfaceOrientation;
     //Done Button Title
-    NSString *doneButtonTitle;
+    NSString *doneWording;
     //Supports rotations
     BOOL supportsRotations;
     //Auto clear the memory caches.
@@ -90,7 +90,7 @@ typedef void(^KRImageViewerScrollingHandler)(NSInteger scrollingPage);
 @property (nonatomic, assign) krImageViewerDisapper dragDisapperMode;
 @property (nonatomic, assign) BOOL allowOperationCaching;
 @property (nonatomic, assign) CGFloat sideInstance;
-@property (nonatomic, assign) CGFloat durations;
+@property (nonatomic, assign) CGFloat animateDuration;
 @property (nonatomic, assign) NSInteger maxConcurrentOperationCount;
 @property (nonatomic, assign) BOOL statusBarHidden;
 @property (nonatomic, assign) NSInteger scrollToPage;
@@ -100,11 +100,12 @@ typedef void(^KRImageViewerScrollingHandler)(NSInteger scrollingPage);
 @property (nonatomic, assign) BOOL clipsToBounds;
 @property (nonatomic, assign) CGFloat timeout;
 @property (nonatomic, assign) UIInterfaceOrientation interfaceOrientation;
-@property (nonatomic, strong) NSString *doneButtonTitle;
+@property (nonatomic, strong) NSString *doneWording;
 @property (nonatomic, assign) BOOL supportsRotations;
 @property (nonatomic, assign) NSInteger overCacheCountRelease;
 @property (nonatomic, assign) BOOL sortAsc;
 @property (nonatomic, strong) NSMutableArray *forceDisplays;
+@property (nonatomic, strong) NSString *cancelWording;
 
 @property (nonatomic, copy) KRImageViewerBrowsingHandler browsingHandler;
 @property (nonatomic, copy) KRImageViewerScrollingHandler scrollingHandler;
@@ -112,16 +113,11 @@ typedef void(^KRImageViewerScrollingHandler)(NSInteger scrollingPage);
 -(void)setBrowsingHandler:(KRImageViewerBrowsingHandler)_theBrowsingHandler;
 -(void)setScrollingHandler:(KRImageViewerScrollingHandler)_theScrollingHandler;
 
-+(instancetype)sharedManager;
++(instancetype)sharedViewer;
 
-/*
- * Initialize
- */
 -(id)initWithParentView:(UIView *)_parentView dragMode:(krImageViewerModes)_dragMode;
 -(id)initWithDragMode:(krImageViewerModes)_dragMode;
-/*
- *
- */
+
 -(void)cancel;
 -(void)start;
 -(void)stop;
@@ -143,7 +139,7 @@ typedef void(^KRImageViewerScrollingHandler)(NSInteger scrollingPage);
  * @ 輸入 URL 進行下載、快取並瀏覽
  *   - Direct downloading images from URLs, caching and browsing. 
  */
--(void)browseAnImageURL:(NSString *)_imageURL;
+-(void)browseOneImageURL:(NSString *)_imageURL;
 -(void)browseImageURLs:(NSDictionary *)_browseURLs;
 /*
  * @ 直接輸入圖片進行瀏覽
@@ -159,7 +155,7 @@ typedef void(^KRImageViewerScrollingHandler)(NSInteger scrollingPage);
  * @ 逐頁瀏覽圖片，並設定要優先下載的圖片 ( 也就「一張一張 Load」的模式 )
  *   - Page by Page to browse images, and you can input ID of image to set which image is the first show.
  */
--(void)browsePageByPageImageURLs:(NSDictionary *)_browseURLs firstShowImageId:(NSString *)_fireImageId;
+-(void)browsePageByPageImageURLs:(NSDictionary *)_browseURLs startIn:(NSString *)_fireImageId;
 /*
  * @ 旋轉時重載入
  *   - Reset the image-viewer's rotation. 
@@ -171,7 +167,7 @@ typedef void(^KRImageViewerScrollingHandler)(NSInteger scrollingPage);
  */
 -(void)startWatchRotations;
 -(void)stopWatchRotations;
--(void)stopWatchRotationsAndBackToInitialRotation;
+-(void)toInitialRotation;
 
 
 @end

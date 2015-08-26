@@ -1,10 +1,10 @@
 //
 //  KRImageViewer.m
-//  V1.0.2
+//  V1.0.3
 //  ilovekalvar@gmail.com
 //
 //  Created by Kuo-Ming Lin on 2012/11/07.
-//  Copyright (c) 2012 - 2014 年 Kuo-Ming Lin. All rights reserved.
+//  Copyright (c) 2012 - 2015 年 Kuo-Ming Lin. All rights reserved.
 //
 
 #import <QuartzCore/QuartzCore.h>
@@ -12,8 +12,7 @@
 #import "KRImageOperation.h"
 #import "KRImageScrollView.h"
 
-
-static CGFloat _backgroundViewBlackColor = 0.0f;
+static CGFloat _backgroundViewBlackColor                 = 0.0f;
 static NSInteger _krImageViewerActivityBackgroundViewTag = 1799;
 static NSInteger _krImageViewerCancelButtonTag           = 1800;
 static NSInteger _krImageViewerBrowsingButtonTag         = 1801;
@@ -49,83 +48,9 @@ static NSInteger _krImageViewerActivityIndicatorTag      = 1802;
 @property (nonatomic, assign) BOOL _firstTimeSetting;
 @property (nonatomic, assign) UIInterfaceOrientation _initialInterfaceOrientation;
 
-
 @end
 
-@interface KRImageViewer (fixDrages)
-
--(void)_initWithVars;
--(void)_renewBackgroundViewColorAndAlpha;
--(void)_renewDragViewColorAndAlpha;
--(void)_resetGestureView;
--(void)_resetViewVars;
--(void)_setupBackgroundView;
--(void)_setupDragView;
--(void)_allocPanGesture;
--(void)_addViewDragGesture;
--(void)_removeViewDragGesture;
--(void)_moveView:(UIView *)_targetView toX:(CGFloat)_toX toY:(CGFloat)_toY;
--(CGFloat)_dragDisapperInstance;
--(void)_hideDoneButton;
--(void)_displayDoneButton;
--(void)_handleDrag:(UIPanGestureRecognizer*)_panGesture;
-//
--(void)_addCacheImage:(UIImage *)_doneImage forKey:(NSString *)_imageKey;
--(void)_removeAllCaches;
--(void)_resortKeys;
--(void)_cancelAllOperations;
--(void)_downloadImageURLs:(NSDictionary *)_urls;
--(void)_resetBackgroundViewAlpha;
-//
--(void)_scrollViewRemoveAllSubviews;
--(void)_setupScrollView;
--(void)_setupImagesInScrollView;
-//
--(void)_browseImages;
--(void)_removeBrowser:(id)sender;
--(void)_removeAllViews;
-//
--(CGFloat)_statusBarHeight;
--(void)_resetIndicator:(UIActivityIndicatorView *)_indicator withFrame:(CGRect)_frame;
--(void)_startLoadingWithView:(UIView *)_targetView needCancelButton:(BOOL)_needCancelButton;
--(void)_startLoadingWithView:(UIView *)_targetView;
--(void)_stopLoadingWithView:(UIView *)_targetView;
--(void)_startLoadingOnMainView;
--(void)_stopLoadingOnMainView;
--(void)_startLoadingOnKRImageScrollView:(KRImageScrollView *)_targetView;
--(void)_appearStatus:(BOOL)_isAppear;
-//
--(NSInteger)_currentPage;
--(NSInteger)_currentIndex;
--(void)_scrollToPage:(NSInteger)_toPage;
-//
--(NSDictionary *)_sortDictionary:(NSDictionary *)_formatedDatas ascending:(BOOL)_isAsc;
--(BOOL)_isInt:(NSString*)_string;
--(void)_refreshCaches;
--(void)_disapperAsSuckEffect;
-//
--(NSInteger)_findOperationCacheMode;
--(void)_cancelAndClose:(id)sender;
--(UIButton *)_doneBrowserButton;
--(UIButton *)_cancelDownloadingButtonWithSuperFrame:(CGRect)_superFrame;
-//
--(UIImage *)_imageNameNoCache:(NSString *)_imageName;
--(NSString *)_findImageIndexWithId:(NSString *)_imageId;
--(void)_loadImageWithPage:(NSInteger)_loadPage;
--(void)_addDefaultImagesOnScrollView;
--(void)_firedBrowsingDelegate;
--(void)_firedScrollingDelegate;
--(void)_resizeScrollViewWithFrame:(CGRect)_frame;
--(void)_resizeBackgroundViewWithFrame:(CGRect)_frame andTransform:(CGAffineTransform)_transform;
--(void)_resizeDragViewWithFrame:(CGRect)_frame;
--(void)_resizeDoneButton:(UIButton *)_button;
--(void)_resizeCancelButton:(UIButton *)_button withSuperFrame:(CGRect)_superFrame;
--(void)_resetIndicatorWithSuperFrame:(CGRect)_superFrame;
--(void)_deviceDidRotate;
-
-@end
-
-@implementation KRImageViewer (fixDrages)
+@implementation KRImageViewer (fixInit)
 
 -(void)_initWithVars
 {
@@ -134,12 +59,12 @@ static NSInteger _krImageViewerActivityIndicatorTag      = 1802;
         //一次只處理 n 個 Operation
         self.maxConcurrentOperationCount = NSOperationQueueDefaultMaxConcurrentOperationCount;
     }
-    self.sideInstance = 0.0f;
-    self.durations    = 0.2f;
-    _operationQueues  = [[NSOperationQueue alloc] init];
-    _caches           = [[NSMutableDictionary alloc] initWithCapacity:0];
-    _sortedKeys       = [[NSMutableArray alloc] initWithCapacity:0];
-    _imageInfos       = [[NSMutableDictionary alloc] initWithCapacity:0];
+    self.sideInstance          = 0.0f;
+    self.animateDuration       = 0.2f;
+    _operationQueues           = [[NSOperationQueue alloc] init];
+    _caches                    = [[NSMutableDictionary alloc] initWithCapacity:0];
+    _sortedKeys                = [[NSMutableArray alloc] initWithCapacity:0];
+    _imageInfos                = [[NSMutableDictionary alloc] initWithCapacity:0];
     self.dragDisapperMode      = krImageViewerDisapperAfterMiddle;
     self.allowOperationCaching = YES;
     self.statusBarHidden       = YES;
@@ -150,7 +75,8 @@ static NSInteger _krImageViewerActivityIndicatorTag      = 1802;
     self.clipsToBounds         = YES;
     self.timeout               = 60.0f;
     self.interfaceOrientation  = UIInterfaceOrientationPortrait;
-    self.doneButtonTitle       = @"完成";
+    self.doneWording           = @"DONE";
+    self.cancelWording         = @"CANCEL";
     self.overCacheCountRelease = 0;
     //Private
     self._isCancelled          = NO;
@@ -162,23 +88,63 @@ static NSInteger _krImageViewerActivityIndicatorTag      = 1802;
     self.sortAsc               = NO;
     self.forceDisplays         = [[NSMutableArray alloc] initWithCapacity:0];
     
-    self.browsingHandler  = nil;
-    self.scrollingHandler = nil;
+    self.browsingHandler       = nil;
+    self.scrollingHandler      = nil;
 }
 
--(void)_renewBackgroundViewColorAndAlpha
+@end
+
+@implementation KRImageViewer (fixBackgroundColor)
+
+-(void)_setBackgroundViewColorToBlack
 {
-    [self._backgroundView setBackgroundColor:[UIColor clearColor]];
     [self._backgroundView setBackgroundColor:[UIColor colorWithRed:_backgroundViewBlackColor
                                                              green:_backgroundViewBlackColor
                                                               blue:_backgroundViewBlackColor
                                                              alpha:0.9f]];
 }
 
--(void)_renewDragViewColorAndAlpha
+-(void)_resetBackgroundViewColor
 {
-    //[self._dragView setBackgroundColor:[UIColor blackColor]];
+    [self._backgroundView setBackgroundColor:[UIColor clearColor]];
+    [self _setBackgroundViewColorToBlack];
+}
+
+-(void)_animateBackgroundViewColorToBlack
+{
+    [UIView animateWithDuration:0.25f animations:^{
+        [self _setBackgroundViewColorToBlack];
+    }];
+}
+
+-(void)_resetDragViewColor
+{
     [self._dragView setBackgroundColor:[UIColor clearColor]];
+}
+
+@end
+
+@implementation KRImageViewer (fixDrages)
+
+-(void)_moveView:(UIView *)_targetView
+             toX:(CGFloat)_toX
+             toY:(CGFloat)_toY
+{
+    [UIView animateWithDuration:self.animateDuration delay:0.0f options:UIViewAnimationOptionBeginFromCurrentState animations:^{
+        _targetView.frame = CGRectMake(_toX,
+                                       _toY,
+                                       _targetView.frame.size.width,
+                                       _targetView.frame.size.height);
+    } completion:^(BOOL finished) {
+        
+    }];
+}
+
+-(void)_backOriginalPosition
+{
+    [self _moveView:self._gestureView toX:0.0f toY:0.0f];
+    [self _animateBackgroundViewColorToBlack];
+    //[self _renewBackgroundViewColor];
 }
 
 -(void)_resetGestureView
@@ -199,9 +165,7 @@ static NSInteger _krImageViewerActivityIndicatorTag      = 1802;
     [self _resetGestureView];
 }
 
-/*
- * @ 半透明背景 UIView 會隨著 self.view 的 frame 同步調整
- */
+//半透明背景 UIView 會隨著 self.view 的 frame 同步調整
 -(void)_setupBackgroundView
 {
     if( !_backgroundView )
@@ -212,7 +176,7 @@ static NSInteger _krImageViewerActivityIndicatorTag      = 1802;
     {
         [self._backgroundView setFrame:self.view.frame];
     }
-    [self _renewBackgroundViewColorAndAlpha];
+    [self _resetBackgroundViewColor];
 }
 
 -(void)_setupDragView
@@ -237,7 +201,7 @@ static NSInteger _krImageViewerActivityIndicatorTag      = 1802;
      *   - 證實後，確實是圓角特效的關係，再加上被設置成了 masksToBounds 屬性為 YES，這就會讓被蓋在上層的 UIView 的透明背景失效 :XD ~ ( 因為層級較低 )，
      *     解決方法就是去將 masksToBounds 設成 NO 即可，或不要使用 QuartzCore 的圓角特效 XD，或將背景色設為不使用透明度的「純色系」即可。
      */
-    [self _renewDragViewColorAndAlpha];
+    [self _resetDragViewColor];
 }
 
 -(void)_resetMatchPoints
@@ -270,20 +234,6 @@ static NSInteger _krImageViewerActivityIndicatorTag      = 1802;
 -(void)_removeViewDragGesture
 {
     [self._gestureView removeGestureRecognizer:self._panGestureRecognizer];
-}
-
--(void)_moveView:(UIView *)_targetView
-             toX:(CGFloat)_toX
-             toY:(CGFloat)_toY
-{
-    [UIView animateWithDuration:self.durations delay:0.0f options:UIViewAnimationOptionBeginFromCurrentState animations:^{
-        _targetView.frame = CGRectMake(_toX,
-                                       _toY,
-                                       _targetView.frame.size.width,
-                                       _targetView.frame.size.height);
-    } completion:^(BOOL finished) {
-        //...
-    }];
 }
 
 -(CGFloat)_dragDisapperInstance
@@ -336,12 +286,12 @@ static NSInteger _krImageViewerActivityIndicatorTag      = 1802;
     //判斷是否需重設原比對用的 X 座標值
     [self _resetMatchPoints];
     
-    //  NSLog(@"o.x : %f", self._matchPoints.x);
-    //  NSLog(@"v.x : %f", viewCenter.x);
-    //  NSLog(@"center.y : %f", center.y);
-    //  NSLog(@"o.y : %f", self._matchPoints.y);
-    //  NSLog(@"center.x : %f", center.x);
-    //  NSLog(@"trans.x : %f\n\n", translation.x);
+//      NSLog(@"o.x : %f", self._matchPoints.x);
+//      NSLog(@"v.x : %f", viewCenter.x);
+//      NSLog(@"center.y : %f", center.y);
+//      NSLog(@"o.y : %f", self._matchPoints.y);
+//      NSLog(@"center.x : %f", center.x);
+//      NSLog(@"trans.x : %f\n\n", translation.x);
     
     switch (self.dragMode)
     {
@@ -390,7 +340,7 @@ static NSInteger _krImageViewerActivityIndicatorTag      = 1802;
                 else
                 {
                     //回到原點
-                    [self _moveView:self._gestureView toX:0.0f toY:0.0f];
+                    [self _backOriginalPosition];
                 }
             }
             break;
@@ -437,7 +387,7 @@ static NSInteger _krImageViewerActivityIndicatorTag      = 1802;
                 else
                 {
                     //Close
-                    [self _moveView:self._gestureView toX:0.0f toY:0.0f];
+                    [self _backOriginalPosition];
                 }
             }
             break;
@@ -483,7 +433,7 @@ static NSInteger _krImageViewerActivityIndicatorTag      = 1802;
                 }
                 else
                 {
-                    [self _moveView:self._gestureView toX:0.0f toY:0.0f];
+                    [self _backOriginalPosition];
                 }
             }
             break;
@@ -596,10 +546,10 @@ static NSInteger _krImageViewerActivityIndicatorTag      = 1802;
 -(void)_resetBackgroundViewAlpha
 {
     //計算比例
-    CGFloat _offsetAlpha  = -0.2f;
+    CGFloat _offsetAlpha  = -0.15f;
     CGFloat _screenHeight = self._gestureView.frame.size.height;
     CGFloat _dragHeight   = self._dragView.frame.origin.y;
-    CGFloat _diffInstance = fabsf( _dragHeight - _screenHeight );
+    CGFloat _diffInstance = fabs( _dragHeight - _screenHeight );
     CGFloat _maxHeight    = MAX(_diffInstance, _screenHeight);
     CGFloat _minHeight    = MIN(_diffInstance, _screenHeight);
     CGFloat _alpha        = (_minHeight / _maxHeight);
@@ -628,7 +578,6 @@ static NSInteger _krImageViewerActivityIndicatorTag      = 1802;
     CGRect _frame = self.view.frame;
     if( !_scrollView )
     {
-        //_frame.size.height = 400.0f;
         _scrollView = [[UIScrollView alloc] init];
     }
     [self._scrollView setFrame:_frame];
@@ -647,9 +596,6 @@ static NSInteger _krImageViewerActivityIndicatorTag      = 1802;
     self._scrollView.backgroundColor  = [UIColor clearColor];
 }
 
-/*
- * 檢查這一支函式 ... ?? Checking for What ?
- */
 -(void)_setupImagesInScrollView
 {
     [self _scrollViewRemoveAllSubviews];
@@ -689,9 +635,6 @@ static NSInteger _krImageViewerActivityIndicatorTag      = 1802;
 
 -(void)_removeBrowser:(id)sender
 {
-    //[[(UIButton *)sender superview] removeFromSuperview];
-    //[self _appearStatus:YES];
-    //[self _removeAllViews];
     [self stop];
 }
 
@@ -745,18 +688,18 @@ static NSInteger _krImageViewerActivityIndicatorTag      = 1802;
         }
         //UIView *_targetView = self.view;
         CGRect _frame = CGRectMake(0.0f, 0.0f, _targetView.frame.size.width, _targetView.frame.size.height);
-        //
+        
         UIView *_loadingBackgroundView = [[UIView alloc] initWithFrame:_frame];
         [_loadingBackgroundView setTag:_krImageViewerActivityBackgroundViewTag];
         [_loadingBackgroundView setBackgroundColor:[UIColor blackColor]];
         [_loadingBackgroundView setAlpha:0.5];
         [_targetView addSubview:_loadingBackgroundView];
-        //
+        
         if( _needCancelButton )
         {
            [_targetView addSubview:[self _cancelDownloadingButtonWithSuperFrame:_frame]];
         }
-        //
+        
         UIActivityIndicatorView *_loadingIndicator = [[UIActivityIndicatorView alloc]
                                                      initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleWhiteLarge];
         [_loadingIndicator setTag:_krImageViewerActivityIndicatorTag];
@@ -941,7 +884,6 @@ static NSInteger _krImageViewerActivityIndicatorTag      = 1802;
     return _temps;
 }
 
-//判斷是否為純整數
 -(BOOL)_isInt:(NSString*)_string
 {
     int _number;
@@ -955,17 +897,30 @@ static NSInteger _krImageViewerActivityIndicatorTag      = 1802;
     [self _removeAllCaches];
 }
 
-//精靈消失效果
--(void)_disapperAsSuckEffect
+-(void)_disapperAnimationWithCompletion:(void(^)())_completion
 {
-	CATransition *transition = [CATransition animation];
-	transition.delegate = self;
-	transition.duration = self.durations;
-	transition.type     = @"suckEffect";
+    [UIView animateWithDuration:self.animateDuration animations:^{
+        self._backgroundView.alpha = 0.0f;
+        self._dragView.alpha       = 0.0f;
+    } completion:^(BOOL finished) {
+        if( _completion )
+        {
+            _completion();
+        }
+        self._backgroundView.alpha = 1.0f;
+        self._dragView.alpha       = 1.0f;
+    }];
+}
+
+-(void)_disapperAnimation
+{
+	CATransition *transition  = [CATransition animation];
+	transition.delegate       = self;
+	transition.duration       = self.animateDuration;
+	transition.type           = @"oglApplicationSuspend";
 	transition.timingFunction = [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseInEaseOut];
 	[[self.view layer] addAnimation:transition forKey:@"suckAnim"];
     [[self.view layer] display];
-    //[self dismissViewControllerAnimated:YES completion:nil];
 }
 
 -(NSInteger)_findOperationCacheMode
@@ -981,7 +936,7 @@ static NSInteger _krImageViewerActivityIndicatorTag      = 1802;
     [self _appearStatus:YES];
     [self _removeViewDragGesture];
     [self _removeAllViews];
-    [self _moveView:self._gestureView toX:0.0f toY:0.0f];
+    [self _backOriginalPosition];
     //[self _removeBrowser:sender];
 }
 
@@ -993,7 +948,7 @@ static NSInteger _krImageViewerActivityIndicatorTag      = 1802;
     [_button setTag:_krImageViewerBrowsingButtonTag];
     [_button setBackgroundColor:[UIColor clearColor]];
     [_button setBackgroundImage:[self _imageNameNoCache:@"btn_done.png"] forState:UIControlStateNormal];
-    [_button setTitle:self.doneButtonTitle forState:UIControlStateNormal];
+    [_button setTitle:self.doneWording forState:UIControlStateNormal];
     [_button setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
     [_button.titleLabel setFont:[UIFont boldSystemFontOfSize:14.0f]];
     [_button addTarget:self action:@selector(_removeBrowser:) forControlEvents:UIControlEventTouchUpInside];
@@ -1008,7 +963,7 @@ static NSInteger _krImageViewerActivityIndicatorTag      = 1802;
     [_closeButton setTag:_krImageViewerCancelButtonTag];
     [_closeButton setBackgroundColor:[UIColor clearColor]];
     [_closeButton setBackgroundImage:[self _imageNameNoCache:@"btn_done.png"] forState:UIControlStateNormal];
-    [_closeButton setTitle:@"取消" forState:UIControlStateNormal];
+    [_closeButton setTitle:self.cancelWording forState:UIControlStateNormal];
     [_closeButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
     [_closeButton.titleLabel setFont:[UIFont boldSystemFontOfSize:14.0f]];
     [_closeButton addTarget:self action:@selector(_cancelAndClose:) forControlEvents:UIControlEventTouchUpInside];
@@ -1197,10 +1152,10 @@ static NSInteger _krImageViewerActivityIndicatorTag      = 1802;
     [self _scrollToPage:self.scrollToPage];
 }
 
--(void)_resizeBackgroundViewWithFrame:(CGRect)_frame andTransform:(CGAffineTransform)_transform
+// for iOS 7+
+-(void)_resizeBackgroundViewWithFrame:(CGRect)_frame
 {
-    self._backgroundView.transform = _transform;
-    self._backgroundView.bounds    = _frame;
+    self._backgroundView.frame = _frame;
 }
 
 -(void)_resizeDragViewWithFrame:(CGRect)_frame
@@ -1277,14 +1232,14 @@ static NSInteger _krImageViewerActivityIndicatorTag      = 1802;
 @synthesize _isOncePageToLoading;
 @synthesize _firstTimeSetting;
 @synthesize _initialInterfaceOrientation;
-//
+
 @synthesize delegate = _delegate;
 @synthesize view;
 @synthesize dragMode;
 @synthesize dragDisapperMode;
 @synthesize allowOperationCaching;
 @synthesize sideInstance;
-@synthesize durations;
+@synthesize animateDuration;
 @synthesize maxConcurrentOperationCount;
 @synthesize statusBarHidden;
 @synthesize scrollToPage;
@@ -1294,7 +1249,8 @@ static NSInteger _krImageViewerActivityIndicatorTag      = 1802;
 @synthesize clipsToBounds;
 @synthesize timeout;
 @synthesize interfaceOrientation;
-@synthesize doneButtonTitle;
+@synthesize doneWording;
+@synthesize cancelWording;
 @synthesize supportsRotations = _supportsRotations;
 @synthesize overCacheCountRelease;
 @synthesize sortAsc;
@@ -1303,17 +1259,17 @@ static NSInteger _krImageViewerActivityIndicatorTag      = 1802;
 @synthesize browsingHandler  = _browsingHandler;
 @synthesize scrollingHandler = _scrollingHandler;
 
-+(instancetype)sharedManager
++(instancetype)sharedViewer
 {
     static dispatch_once_t pred;
     static KRImageViewer *sharedManager = nil;
     dispatch_once(&pred, ^{
-        sharedManager = [[self alloc] init];
+        sharedManager = [[KRImageViewer alloc] init];
     });
     return sharedManager;
 }
 
--(id)init
+-(instancetype)init
 {
     self = [super init];
     if( self )
@@ -1326,7 +1282,7 @@ static NSInteger _krImageViewerActivityIndicatorTag      = 1802;
     return self;
 }
 
--(id)initWithParentView:(UIView *)_parentView dragMode:(krImageViewerModes)_dragMode
+-(instancetype)initWithParentView:(UIView *)_parentView dragMode:(krImageViewerModes)_dragMode
 {
     self = [super init];
     if( self )
@@ -1340,7 +1296,7 @@ static NSInteger _krImageViewerActivityIndicatorTag      = 1802;
     return self;
 }
 
--(id)initWithDragMode:(krImageViewerModes)_dragMode
+-(instancetype)initWithDragMode:(krImageViewerModes)_dragMode
 {
     self = [super init];
     if( self )
@@ -1378,13 +1334,13 @@ static NSInteger _krImageViewerActivityIndicatorTag      = 1802;
 {
     [self _appearStatus:YES];
     [self _removeViewDragGesture];
-    //[self _disapperAsSuckEffect];
-    [self _removeAllViews];
-    //回原點
-    [self _moveView:self._gestureView toX:0.0f toY:0.0f];
-    //回復黑色背景
-    [self _renewBackgroundViewColorAndAlpha];
-    [self _renewDragViewColorAndAlpha];
+    //[self _disapperAnimation];
+    [self _disapperAnimationWithCompletion:^{
+        [self _removeAllViews];
+        [self _backOriginalPosition];
+        [self _resetBackgroundViewColor];
+        [self _resetDragViewColor];
+    }];
 }
 
 -(void)resetView:(UIView *)_parentView withDragMode:(krImageViewerModes)_dragMode
@@ -1460,7 +1416,7 @@ static NSInteger _krImageViewerActivityIndicatorTag      = 1802;
     }
 }
 
--(void)browseAnImageURL:(NSString *)_imageURL
+-(void)browseOneImageURL:(NSString *)_imageURL
 {
     self._isOncePageToLoading = NO;
     self._isCancelled         = NO;
@@ -1518,11 +1474,11 @@ static NSInteger _krImageViewerActivityIndicatorTag      = 1802;
  *   - 要注意，如在外部有使用過一次 forceDisplays，則後續又想新增圖片後並 Reload ImageViewer 的顯示圖片，
  *     就必須再重新設定一次 forceDisplays 才行，否則該新增的圖片會顯示失敗。
  */
--(void)browsePageByPageImageURLs:(NSDictionary *)_browseURLs firstShowImageId:(NSString *)_fireImageId
+-(void)browsePageByPageImageURLs:(NSDictionary *)_browseURLs startIn:(NSString *)_fireImageId
 {
     [self _removeAllViews];
     self._isOncePageToLoading = YES;
-    self._imageInfos  = [NSMutableDictionary dictionaryWithDictionary:_browseURLs];
+    self._imageInfos          = [NSMutableDictionary dictionaryWithDictionary:_browseURLs];
     NSDictionary *_sortedURLs = [self _sortDictionary:_browseURLs ascending:YES];
     if( [self.forceDisplays count] > 0 )
     {
@@ -1534,13 +1490,11 @@ static NSInteger _krImageViewerActivityIndicatorTag      = 1802;
     }
     [self findImageScrollPageWithId:_fireImageId];
     //NSArray *_values = [_sortedURLs objectForKey:@"values"];
-    /*
-     * @ 先一次性寫入所有的「預設圖片」
-     */
+    
+    //先一次性寫入所有的「預設圖片」
     [self _addDefaultImagesOnScrollView];
-    /*
-     * @ 展示所有的「預設圖片」
-     */
+    
+    //展示所有的「預設圖片」
     self._isCancelled = NO;
     [self _appearStatus:NO];
     [self _addViewDragGesture];
@@ -1549,9 +1503,8 @@ static NSInteger _krImageViewerActivityIndicatorTag      = 1802;
     //[self._dragView addSubview:[self _doneBrowserButton]];
     [self._backgroundView addSubview:self._dragView];
     [self.view addSubview:self._backgroundView];
-    /*
-     * @ 開始載入當前圖片
-     */
+    
+    //開始載入當前圖片
     [self _cancelAllOperations];
     [self _loadImageWithPage:self.scrollToPage];
 }
@@ -1559,60 +1512,13 @@ static NSInteger _krImageViewerActivityIndicatorTag      = 1802;
 -(void)reloadImagesWhenRotate:(UIInterfaceOrientation)_toInterfaceOrientation
 {
     self.interfaceOrientation = _toInterfaceOrientation;
-    /*
-     * @ 設計想法
-     *   - 要旋轉的是除了 self.view 以外的所有 View ( UIView, UIScrollView, UIImageView, UIButton )，
-     *     並且所有的 View frame 都要重新計算( resize )與排定座標( repoints )位置。
-     */
-    CGRect _frame   = self.view.frame;
-    CGFloat _width  = _frame.size.width;
-    CGFloat _height = _frame.size.height;
-    CGAffineTransform transform = CGAffineTransformMakeRotation(M_PI_2);
-    switch ( _toInterfaceOrientation )
-    {
-        case UIInterfaceOrientationPortrait:
-            //NSLog(@"轉成直立");
-            //轉成直立
-            _frame.size.width  = _width;
-            _frame.size.height = _height;
-            transform = CGAffineTransformMakeRotation(M_PI * 2);
-            break;
-        case UIInterfaceOrientationPortraitUpsideDown:
-            //NSLog(@"轉成倒立");
-            //轉成倒立
-            _frame.size.width  = _width;
-            _frame.size.height = _height;
-            transform = CGAffineTransformMakeRotation(M_PI);
-            break;
-        case UIInterfaceOrientationLandscapeLeft:
-            //NSLog(@"轉成左橫向");
-            //轉成左橫向 ( Home 鍵在左 )
-            _frame.size.width  = _height;
-            _frame.size.height = _width;
-            transform = CGAffineTransformMakeRotation(3.0 * M_PI / 2.0);
-            break;
-        case UIInterfaceOrientationLandscapeRight:
-            //NSLog(@"轉右橫向");
-            //轉成右橫向 ( Home 鍵在右 )
-            _frame.size.width  = _height;
-            _frame.size.height = _width;
-            transform = CGAffineTransformMakeRotation(M_PI_2);
-            break;
-        default:
-            //NSLog(@"預設轉成直立");
-            //預設是轉成直立 ( 0 )
-            _frame.size.width  = _width;
-            _frame.size.height = _height;
-            transform = CGAffineTransformMakeRotation(M_PI * 2);
-            break;
-    }
-    [self _resizeBackgroundViewWithFrame:_frame andTransform:transform];
+    CGRect _frame             = self.view.frame;
+    [self _resizeBackgroundViewWithFrame:_frame];
     [self _resetIndicatorWithSuperFrame:_frame];
     [self _resizeDragViewWithFrame:_frame];
     [self _resizeScrollViewWithFrame:_frame];
     [self _resetGestureView];
     [self _resizeDoneButton:(UIButton *)[self._dragView viewWithTag:_krImageViewerBrowsingButtonTag]];
-    //[self _resizeCancelButton:(UIButton *)[self.view viewWithTag:_krImageViewerCancelButtonTag] withSuperFrame:_frame];
 }
 
 -(void)startWatchRotations
@@ -1627,7 +1533,7 @@ static NSInteger _krImageViewerActivityIndicatorTag      = 1802;
     self.supportsRotations = NO;
 }
 
--(void)stopWatchRotationsAndBackToInitialRotation
+-(void)toInitialRotation
 {
     [self stopWatchRotations];
     [self reloadImagesWhenRotate:self._initialInterfaceOrientation];
@@ -1645,7 +1551,6 @@ static NSInteger _krImageViewerActivityIndicatorTag      = 1802;
                                                             name:UIDeviceOrientationDidChangeNotification
                                                           object:nil];
         }
-        //NSLog(@"setSupportsRotations YES");
         [[NSNotificationCenter defaultCenter] addObserver:self
                                                  selector:@selector(_deviceDidRotate)
                                                      name:UIDeviceOrientationDidChangeNotification
@@ -1653,7 +1558,6 @@ static NSInteger _krImageViewerActivityIndicatorTag      = 1802;
     }
     else
     {
-        //NSLog(@"setSupportsRotations NO");
         [[NSNotificationCenter defaultCenter] removeObserver:self
                                                         name:UIDeviceOrientationDidChangeNotification
                                                       object:nil];
@@ -1662,7 +1566,7 @@ static NSInteger _krImageViewerActivityIndicatorTag      = 1802;
 
 -(void)setBrowsingHandler:(KRImageViewerBrowsingHandler)_theBrowsingHandler
 {
-    _browsingHandler = _theBrowsingHandler;
+    _browsingHandler  = _theBrowsingHandler;
 }
 
 -(void)setScrollingHandler:(KRImageViewerScrollingHandler)_theScrollingHandler
@@ -1716,7 +1620,7 @@ static NSInteger _krImageViewerActivityIndicatorTag      = 1802;
 }
 
 //縮放結束
--(void)scrollViewDidEndZooming:(UIScrollView *)scrollView withView:(UIView *)_subview atScale:(float)scale
+-(void)scrollViewDidEndZooming:(UIScrollView *)scrollView withView:(UIView *)_subview atScale:(CGFloat)scale
 {
     
 }

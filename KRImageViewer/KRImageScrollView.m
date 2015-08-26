@@ -1,10 +1,10 @@
 //
 //  KRImageScrollView.m
-//  V1.0.2
+//  V1.0.3
 //  ilovekalvar@gmail.com
 //
 //  Created by Kuo-Ming Lin on 2012/11/07.
-//  Copyright (c) 2012 - 2014 年 Kuo-Ming Lin. All rights reserved.
+//  Copyright (c) 2012 - 2015 年 Kuo-Ming Lin. All rights reserved.
 //
 
 #import "KRImageScrollView.h"
@@ -204,7 +204,7 @@
     return self._imageView;
 }
 
--(void)scrollViewDidEndZooming:(UIScrollView *)scrollView withView:(UIView *)_subview atScale:(float)scale
+-(void)scrollViewDidEndZooming:(UIScrollView *)scrollView withView:(UIView *)_subview atScale:(CGFloat)scale
 {
     [scrollView setZoomScale:scale+0.01f animated:NO];
     [scrollView setZoomScale:scale animated:NO];

@@ -3,7 +3,7 @@
 //  KRImagaeViewerDemo
 //
 //  Created by Kalvar on 12/10/21.
-//  Copyright (c) 2012 - 2014 年 Kuo-Ming Lin. All rights reserved.
+//  Copyright (c) 2012 - 2015 年 Kuo-Ming Lin. All rights reserved.
 //
 
 #import <UIKit/UIKit.h>

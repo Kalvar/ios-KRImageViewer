@@ -7,7 +7,7 @@
 
 ## How To Get Started
 
-KRImageViewer which you can browsing photos from the URLs and Images ( UIImage ), that you can scroll it to change pages, pinching for zooming, and you can close the viewer with touch and drag move it or swipe it to, and it supports rotations.
+KRImageViewer could let you easy browse photos from the URLs, storage or folders. You can scroll to change page, pinching zooming, dragging and swiping to close, this viewer supports automatic rotation.
 
 ``` objective-c
 #import "KRImageViewer.h"
@@ -25,68 +25,62 @@ KRImageViewer which you can browsing photos from the URLs and Images ( UIImage )
 - (void)viewDidLoad
 {
     [super viewDidLoad];
-    krImageViewer = [[KRImageViewer alloc] initWithDragMode:krImageViewerModeOfBoth];
-    self.krImageViewer.delegate                    = self;
-    self.krImageViewer.maxConcurrentOperationCount = 1;
-    self.krImageViewer.dragDisapperMode            = krImageViewerDisapperAfterMiddle;
-    self.krImageViewer.allowOperationCaching       = NO;
-    self.krImageViewer.timeout                     = 30.0f;
-    self.krImageViewer.doneButtonTitle             = @"DONE";
+    _krImageViewer = [[KRImageViewer alloc] initWithDragMode:krImageViewerModeOfBoth];
+    _krImageViewer.delegate                    = self;
+    _krImageViewer.maxConcurrentOperationCount = 1;
+    _krImageViewer.dragDisapperMode            = krImageViewerDisapperAfterMiddle;
+    _krImageViewer.allowOperationCaching       = NO;
+    _krImageViewer.timeout                     = 30.0f;
+    _krImageViewer.doneWording                 = @"DONE";
+    _krImageViewer.cancelWording               = @"CANCEL";
     //Auto supports the rotations.
-    self.krImageViewer.supportsRotations           = YES;
-    //It'll release caches when caches of image over than 200 photos, but it'll be holding current image to display on the viewer.
-    self.krImageViewer.overCacheCountRelease       = 200;
+    _krImageViewer.supportsRotations           = YES;
+    //It'll release caches when caches of image over than X photos, but it'll be holding current image to display on the viewer.
+    _krImageViewer.overCacheCountRelease       = 200;
     //Sorting Rule, Default ASC is YES, DESC is NO.
-    self.krImageViewer.sortAsc                     = YES;
+    _krImageViewer.sortAsc                     = YES;
+    
+    //Since we need to download from URLs, hence maybe you will see "nothing" in some methods.
     [self preloads];
-
-    [self.krImageViewer setBrowsingHandler:^(NSInteger browsingPage)
+    
+    [_krImageViewer setBrowsingHandler:^(NSInteger browsingPage)
     {
         //Current Browsing Page.
         //...Do Something.
     }];
     
-    [self.krImageViewer setScrollingHandler:^(NSInteger scrollingPage)
+    [_krImageViewer setScrollingHandler:^(NSInteger scrollingPage)
     {
         //Current Scrolling Page.
         //...Do Something.
     }];
+    
 }
 
 -(void)viewDidAppear:(BOOL)animated
 {
     [super viewDidAppear:animated];
-    [self.krImageViewer useKeyWindow];
-    //[self.krImageViewer resetView:self.view.window];
+    //Recommends to use the keyWindow to show. ( It always be front. )
+    [_krImageViewer useKeyWindow];
+    
+    //To set the superview at show ( You can setup this method with your custom view to be parent view to show ).
+    //[_krImageViewer resetView:self.view];
 }
 
-/*
- * @ 允許旋轉
- */
+- (void)didReceiveMemoryWarning
+{
+    [super didReceiveMemoryWarning];
+    
+}
+
 -(BOOL)shouldAutorotate
 {
     return YES;
 }
 
-/*
- * @ 允許的旋轉方向
- */
 -(NSUInteger)supportedInterfaceOrientations
 {
     return UIInterfaceOrientationMaskAll;
-}
-
-/*
- * @ 將要旋轉成什麼方向
- */
--(void)willRotateToInterfaceOrientation:(UIInterfaceOrientation)toInterfaceOrientation duration:(NSTimeInterval)duration
-{
-    /*
-     * @ If you didn't set the " self.krImageViewer.supportsRotation = YES " to auto supporting the rotations, 
-     *   then you can using this method to do the rotation by yourself.
-     */
-    //Here to reload the KRImageViewer rotation.
-    //[self.krImageViewer reloadImagesWhenRotate:toInterfaceOrientation];
 }
 
 #pragma Method Samples
@@ -96,22 +90,21 @@ KRImageViewer which you can browsing photos from the URLs and Images ( UIImage )
     NSDictionary *_downloads = [NSDictionary dictionaryWithObjectsAndKeys:
                                 @"http://farm9.staticflickr.com/8459/7945134514_e5a779ee5f_s.jpg", @"1",
                                 @"http://farm9.staticflickr.com/8435/7944303392_a856d79802_s.jpg", @"2",
-                                @"http://farm9.staticflickr.com/8449/7943919662_67f7345f8b_s.jpg", @"3",
                                 nil];
     //We suggest the to preload the Images.
-    [self.krImageViewer preloadImageURLs:_downloads];
+    [_krImageViewer preloadImageURLs:_downloads];
 }
 
 -(void)followImageIdToFindScrollPage
 {
     //To find the id '3' to setup default show up.
-    [self.krImageViewer findImageScrollPageWithId:@"3"];
+    [_krImageViewer findImageScrollPageWithId:@"2"];
 }
 
 -(IBAction)browsingPreloads:(id)sender
 {
-    self.krImageViewer.scrollToPage = 2;
-    [self.krImageViewer start];
+    _krImageViewer.scrollToPage = 2;
+    [_krImageViewer start];
 }
 
 -(IBAction)browsingURLs:(id)sender
@@ -119,14 +112,13 @@ KRImageViewer which you can browsing photos from the URLs and Images ( UIImage )
     NSDictionary *_downloads = [NSDictionary dictionaryWithObjectsAndKeys:
                                 @"http://farm9.staticflickr.com/8459/7945134514_e5a779ee5f_s.jpg", @"1",
                                 @"http://farm9.staticflickr.com/8435/7944303392_a856d79802_s.jpg", @"2",
-                                @"http://farm9.staticflickr.com/8449/7943919662_67f7345f8b_s.jpg", @"3",
                                 nil];
     
     //Another browsing method of the images.
-    [self.krImageViewer browseImageURLs:_downloads];
+    [_krImageViewer browseImageURLs:_downloads];
     
     //Or you can browse an image as you wanna watch.
-    //[self.krImageViewer browseAnImageURL:@"http://farm9.staticflickr.com/8449/7943919662_67f7345f8b_s.jpg"];
+    //[_krImageViewer browseOneImageURL:@"http://farm9.staticflickr.com/8449/7943919662_67f7345f8b_s.jpg"];
 }
 
 -(IBAction)browsingImages:(id)sender
@@ -137,9 +129,10 @@ KRImageViewer which you can browsing photos from the URLs and Images ( UIImage )
                               [UIImage imageNamed:@"image2.png"],
                               [UIImage imageNamed:@"image3.png"],
                               nil];
-    [self.krImageViewer browseImages:_directWatchs];
+    [_krImageViewer browseImages:_directWatchs];
 }
 
+//Recommends to use this method.
 -(IBAction)browsingImagesPageByPage:(id)sender
 {
     //When you gonna scroll the ImageViewer, it will Page by Page to download the image and show it.
@@ -149,35 +142,43 @@ KRImageViewer which you can browsing photos from the URLs and Images ( UIImage )
                                 @"http://farm9.staticflickr.com/8449/7943919662_67f7345f8b_s.jpg", @"3",
                                 nil];
     //Presents pictures in follow your displaying rules.
-    self.krImageViewer.forceDisplays = [NSMutableArray arrayWithObjects:@"3", @"1", @"2", nil];
-    //Now, the firstShowImageId:@"2" will sort in last one and display it first. 
-    [self.krImageViewer browsePageByPageImageURLs:_downloads firstShowImageId:@"2"];
+    _krImageViewer.forceDisplays = [NSMutableArray arrayWithObjects:@"3", @"1", @"2", nil];
+    //Now, the firstShowImageId:@"2" will sort in last one and display it first.
+    [_krImageViewer browsePageByPageImageURLs:_downloads startIn:@"2"];
 }
 
 -(IBAction)startWatchingRotationsByYourself:(id)sender
 {
-    [self.krImageViewer startWatchRotations];
+    [_krImageViewer startWatchRotations];
 }
 
 -(IBAction)stopWatchingRotations:(id)sender
 {
-    [self.krImageViewer stopWatchRotations];
+    [_krImageViewer stopWatchRotations];
 }
 
 -(IBAction)stopWatchingRotationsAndBackToInitialOrientation:(id)sender
 {
-    [self.krImageViewer stopWatchRotationsAndBackToInitialRotation];
+    [_krImageViewer toInitialRotation];
 }
+
+#pragma KRImageViewerDelegate
+-(void)krImageViewerIsScrollingToPage:(NSInteger)_scrollingPage
+{
+    //The ImageViewer is Scrolling to which page and trigger here.
+    //...
+}
+
 @end
 ```
 
 ## Version
 
-KRImageViewer now is V1.0.2.
+V1.0.3.
 
 ## License
 
-KRImageViewer is available under the MIT license ( or Whatever you wanna do ). See the LICENSE file for more info.
+MIT.
 
 ## Updated Logs
 
@@ -189,7 +190,4 @@ V0.9.7 fixed an issue and supported auto rotations. <br />
 V1.0.0 fixed a bug and added a new variable named " overCacheCountRelease " to control the cache-memory. <br />
 V1.0.1 fixed an iOS 7 memory bug and added 2 new variables named " sortAsc " and " forceDisplays ". <br />
 V1.0.2 added 2 bloks function.
-
-## Others
-
-KRImageViewer to offer a browser of images, It'll be liking the iOS Facebook Image Viewer in the future one day.
+V1.0.3 supported iOS 7+ and fixed bugs.
