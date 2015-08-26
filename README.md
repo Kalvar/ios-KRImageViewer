@@ -5,6 +5,13 @@
 <img src="https://dl.dropbox.com/u/83663874/GitHubs/KRImageViewer-3.png" alt="KRImageViewer" title="KRImageViewer" style="margin: 20px;" class="center" /> &nbsp;
 <img src="https://dl.dropbox.com/u/83663874/GitHubs/KRImageViewer-4.png" alt="KRImageViewer" title="KRImageViewer" style="margin: 20px;" class="center" />
 
+#### Podfile
+
+```ruby
+platform :ios, '7.0'
+pod "KRImageViewer", "~> 1.0.3"
+```
+
 ## How To Get Started
 
 KRImageViewer could let you easy browse photos from the URLs, storage or folders. You can scroll to change page, pinching zooming, dragging and swiping to close, this viewer supports automatic rotation.
