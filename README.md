@@ -189,5 +189,5 @@ V0.9.6 fixed an issue and added a variable named " doneButtonTitle ". <br />
 V0.9.7 fixed an issue and supported auto rotations. <br />
 V1.0.0 fixed a bug and added a new variable named " overCacheCountRelease " to control the cache-memory. <br />
 V1.0.1 fixed an iOS 7 memory bug and added 2 new variables named " sortAsc " and " forceDisplays ". <br />
-V1.0.2 added 2 bloks function.
+V1.0.2 added 2 bloks function. <br />
 V1.0.3 supported iOS 7+ and fixed bugs.
